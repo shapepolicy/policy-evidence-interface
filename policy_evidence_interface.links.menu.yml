@@ -1,0 +1,5 @@
+policy_evidence_interface.settings:
+  title: 'Policy Evidence Interface'
+  description: 'Configure the APO MCP plugin settings.'
+  route_name: policy_evidence_interface.settings
+  parent: system.admin_config_services

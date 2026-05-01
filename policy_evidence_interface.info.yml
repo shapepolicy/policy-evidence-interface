@@ -1,5 +1,8 @@
-name: policy evidence interface
-description: pdf mcp techlauncher project
-package: techlauncher
+name: Policy Evidence Interface
+description: MCP plugin exposing APO policy resources to AI systems via Model Context Protocol.
+package: TechLauncher
 type: module
 core_version_requirement: ^10 || ^11
+configure: policy_evidence_interface.settings
+dependencies:
+  - mcp:mcp

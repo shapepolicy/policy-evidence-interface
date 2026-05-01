@@ -1,0 +1,4 @@
+administer policy evidence interface:
+  title: 'Administer Policy Evidence Interface'
+  description: 'Access and configure the APO MCP plugin settings.'
+  restrict access: false

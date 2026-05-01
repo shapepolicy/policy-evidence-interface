@@ -1,0 +1,7 @@
+policy_evidence_interface.settings:
+  path: '/admin/config/services/policy-evidence-interface'
+  defaults:
+    _form: '\Drupal\policy_evidence_interface\Form\SettingsForm'
+    _title: 'Policy Evidence Interface Settings'
+  requirements:
+    _permission: 'administer site configuration'

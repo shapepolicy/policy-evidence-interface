@@ -1,0 +1,34 @@
+<?php
+
+/**
+ * @file
+ * Module hooks for Policy Evidence Interface.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function policy_evidence_interface_install(): void {
+  $config = \Drupal::configFactory()->getEditable('mcp.settings');
+  $plugins = $config->get('plugins') ?? [];
+
+  if (!isset($plugins['policy_evidence_interface'])) {
+    $plugins['policy_evidence_interface'] = [
+      'enabled' => TRUE,
+      'roles' => ['authenticated'],
+      'config' => [],
+      'tools' => [],
+    ];
+    $config->set('plugins', $plugins)->save();
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function policy_evidence_interface_uninstall(): void {
+  $config = \Drupal::configFactory()->getEditable('mcp.settings');
+  $plugins = $config->get('plugins') ?? [];
+  unset($plugins['policy_evidence_interface']);
+  $config->set('plugins', $plugins)->save();
+}

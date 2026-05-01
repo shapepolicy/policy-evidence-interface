@@ -1,0 +1,33 @@
+policy_evidence_interface.settings:
+  type: config_object
+  label: 'Policy Evidence Interface settings'
+  mapping:
+    max_results:
+      type: integer
+      label: 'Maximum results per query'
+    enabled_content_types:
+      type: sequence
+      label: 'Enabled Drupal content types'
+      sequence:
+        type: string
+
+mcp.plugin_config.policy_evidence_interface:
+  type: mcp.plugin_config
+  label: 'Policy Evidence Interface MCP plugin config'
+  mapping:
+    enabled:
+      type: boolean
+    roles:
+      type: sequence
+      sequence:
+        type: string
+    config:
+      type: mapping
+      mapping:
+        max_results:
+          type: integer
+          label: 'Max results'
+    tools:
+      type: sequence
+      sequence:
+        type: mcp.tool_config.[%key]
