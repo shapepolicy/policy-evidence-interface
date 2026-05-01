@@ -1,0 +1,5 @@
+name: policy evidence interface
+description: pdf mcp techlauncher project
+package: techlauncher
+type: module
+core_version_requirement: ^10 || ^11
