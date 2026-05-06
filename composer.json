@@ -1,3 +1,4 @@
 {
-    "name": "shapepolicy/policy-evidence-interface"
+    "name": "shapepolicy/policy-evidence-interface",
+    "type": "drupal-module"
 }
