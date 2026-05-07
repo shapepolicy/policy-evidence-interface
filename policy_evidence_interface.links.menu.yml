@@ -1,0 +1,6 @@
+policy_evidence_interface.policy_evidence_interface_settings:
+  title: Policy evidence interface settings
+  description: Used for policy evidence interface settings
+  parent: system.admin_config_system
+  route_name: policy_evidence_interface.policy_evidence_interface_settings
+  weight: 10

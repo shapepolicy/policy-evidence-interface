@@ -1,0 +1,11 @@
+# Schema for the configuration files of the Policy evidence interface module.
+policy_evidence_interface.settings:
+  type: config_object
+  label: 'Policy evidence interface settings'
+  mapping:
+    pdf_file:
+      type: string
+      label: 'pdf file name'
+    pdf_root_path:
+      type: string
+      label: 'path_to_pdf'
