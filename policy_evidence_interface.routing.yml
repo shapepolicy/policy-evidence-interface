@@ -1,0 +1,23 @@
+policy_evidence_interface.policy_evidence_interface_settings:
+  path: '/admin/config/system/policy-evidence-interface-settings'
+  defaults:
+    _title: 'Policy evidence interface settings'
+    _form: 'Drupal\policy_evidence_interface\Form\PolicyEvidenceInterfaceSettingsForm'
+  requirements:
+    _permission: 'administer site configuration'
+
+policy_evidence_interface.pdf_reader_state:
+  path: '/pdf_reader/state'
+  defaults:
+    _controller: '\Drupal\policy_evidence_interface\Controller\PdfReaderController::state'
+    _title: 'pdf reader state'
+  requirements:
+    _permission: 'administer site configuration'
+
+policy_evidence_interface.pdf_reader_read:
+  path: '/pdf_reader/read'
+  defaults:
+    _controller: '\Drupal\policy_evidence_interface\Controller\PdfReaderController::read'
+    _title: 'pdf reader read'
+  requirements:
+    _permission: 'Access Content'
