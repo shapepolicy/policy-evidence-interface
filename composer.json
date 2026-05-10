@@ -3,7 +3,6 @@
     "description": "Drupal module providing a policy evidence interface.",
     "type": "drupal-module",
     "license": "MIT",
-
     "require": {
         "smalot/pdfparser": "^2.12"
     }
