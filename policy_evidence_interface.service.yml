@@ -1,0 +1,4 @@
+services:
+  policy_evidence_interface.policy_evidence:
+    class: Drupal\policy_evidence_interface\Service\PolicyEvidence
+    arguments: ['@entity_type.manager', '@config.factory']

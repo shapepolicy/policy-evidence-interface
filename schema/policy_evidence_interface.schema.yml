@@ -9,3 +9,12 @@ policy_evidence_interface.settings:
     pdf_root_path:
       type: string
       label: 'path_to_pdf'
+    max_results:
+      type: integer
+      label: 'Maximum results'
+    enabled_content_types:
+      type: sequence
+      label: 'Enabled content types'
+      sequence:
+        type: string
+        label: 'Content type'
