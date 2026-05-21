@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
+  bootstrap="../../core/tests/bootstrap.php"
+  colors="true"
+  beStrictAboutTestsThatDoNotTestAnything="true"
+  beStrictAboutOutputDuringTests="true"
+  beStrictAboutTestSize="true"
+  failOnWarning="true"
+  failOnRisky="true"
+  verbose="true">
+  <testsuites>
+    <testsuite name="policy_evidence_interface">
+      <file>tests/src/Kernel/PolicyEvidencePluginTest.php</file>
+      <file>tests/src/Kernel/PolicyEvidenceSchemaTest.php</file>
+      <file>tests/src/Functional/PolicyEvidenceRoutingTest.php</file>
+      <file>tests/src/Functional/PolicyEvidenceSettingsFormTest.php</file>
+    </testsuite>
+  </testsuites>
+  <coverage processUncoveredFiles="true">
+    <include>
+      <directory suffix=".php">src</directory>
+    </include>
+    <exclude>
+      <directory>tests</directory>
+      <directory>vendor</directory>
+    </exclude>
+  </coverage>
+  <php>
+    <!-- Set error reporting to E_ALL -->
+    <ini name="error_reporting" value="-1"/>
+    <!-- Disable deprecation errors for now -->
+    <ini name="display_errors" value="On"/>
+    <ini name="display_startup_errors" value="On"/>
+    <!-- Ensure we use the correct timezone -->
+    <ini name="date.timezone" value="UTC"/>
+  </php>
+</phpunit>
