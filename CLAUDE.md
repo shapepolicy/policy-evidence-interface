@@ -29,6 +29,7 @@ Policy Resources + Rich Metadata
 ```
 
 **Key components to build:**
+
 - **Drupal module** (PHP) — hooks, endpoints, and plugin wiring within Drupal 10/11
 - **MCP server/interface** — structured protocol layer AI clients call
 - **Semantic search** — meaning-based retrieval over the document corpus
@@ -44,15 +45,16 @@ Policy Resources + Rich Metadata
 
 ## Key Files
 
-| File | Purpose |
-|------|---------|
-| `policy_evidence_interface.info.yml` | Drupal module metadata (name, package, core version) |
-| `Project.md` | Full project brief: stakeholders, aims, scope, desired outcomes |
-| `.github/workflows/blank.yml` | CI placeholder — needs replacing with real pipeline |
+| File                                 | Purpose                                                         |
+|--------------------------------------|-----------------------------------------------------------------|
+| `policy_evidence_interface.info.yml` | Drupal module metadata (name, package, core version)            |
+| `Project.md`                         | Full project brief: stakeholders, aims, scope, desired outcomes |
+| `.github/workflows/blank.yml`        | CI placeholder — needs replacing with real pipeline             |
 
 ## Development Setup
 
 No Composer, npm, or build scripts exist yet. When adding them:
+
 - PHP dependencies go in `composer.json` (Drupal/Composer ecosystem)
 - Use `phpunit` for Drupal module testing (Drupal's testing framework)
 - Drupal coding standards use `phpcs` with the `Drupal` and `DrupalPractice` sniffs
