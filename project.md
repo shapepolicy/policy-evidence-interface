@@ -4,6 +4,17 @@
 
 Designing a Policy Evidence Interface for the AI Era
 
+## Group Members
+
+- Client: Dr. Harry Rolf (Director @shapepolicy)
+- Tutor: Saswat Panda (Research Officer (AI) @ANU)
+- Student:
+  - Lead: Harry Baard (u7084054)
+  - Amogh Agarwal (u7782814)
+  - Peter Wei (u6967145)
+  - Qiyue Zhang (u7837507)
+  - Shiyun Yao (u7816630)
+
 ## Stakeholder
 
 Shape Policy Creative Intelligence Pty Ltd (Shape Policy)
