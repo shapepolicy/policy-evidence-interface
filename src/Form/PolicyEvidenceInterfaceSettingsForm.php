@@ -42,6 +42,25 @@ final class PolicyEvidenceInterfaceSettingsForm extends ConfigFormBase {
       '#title' => $this->t('target pdf name'),
       '#default_value' => $this->config('policy_evidence_interface.settings')->get('pdf_file'),
     ];
+
+    $form['max_results'] = [
+      '#type' => 'number',
+      '#title' => $this->t('Maximum results'),
+      '#default_value' => $this->config('policy_evidence_interface.settings')->get('max_results') ?? 10,
+      '#min' => 1,
+      '#max' => 50,
+    ];
+  
+    $form['enabled_content_types'] = [
+      '#type' => 'checkboxes',
+      '#title' => $this->t('Enabled content types'),
+      '#options' => [
+        'article' => $this->t('Article'),
+        'page' => $this->t('Basic page'),
+      ],
+      '#default_value' => $this->config('policy_evidence_interface.settings')->get('enabled_content_types') ?? [],
+    ];
+  
     return parent::buildForm($form, $form_state);
   }
 
@@ -69,6 +88,8 @@ final class PolicyEvidenceInterfaceSettingsForm extends ConfigFormBase {
     $this->config('policy_evidence_interface.settings')
       ->set('pdf_root_path', $form_state->getValue('pdf_root_path'))
       ->set('pdf_file', $form_state->getValue('pdf_file'))
+      ->set('max_results', $form_state->getValue('max_results'))
+      ->set('enabled_content_types', array_filter($form_state->getValue('enabled_content_types')))
       ->save();
     parent::submitForm($form, $form_state);
   }
