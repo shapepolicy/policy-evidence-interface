@@ -16,22 +16,22 @@ Upon successful completion, students will have the knowledge and skills to:
 
 TechLauncher is structured around six sprints. Students are required to attend their assigned sprint days and actively contribute to team activities. At the end of each sprint, teams should review their contributions with their tutor. At the end of the semester, each team must submit a Sprint Grade Case, which, together with tutor observations, determines the final Sprint mark.
 
-Assessment task | Value | Due Date | Learning Outcomes
---- | --- | --- | ---
-Semester 1 | --- | --- | ---
-Sprint 1 Review | 0 % | 06/04/2026 | 1,3,4,5,6,7
-Sprint 2 Review | 0 % | 10/05/2026 | 1,3,4,5,6,7
-Sprint 3 Review | 0 % | 31/05/2026 | 1,3,4,5,6,7
-Reflection 1 | 10 % | 07/06/2026 | 2
-Sprint Grade Case for Sprints 1-3 | 30 % | 07/06/2026 | 1,3,4,5,6,7
-Semester 2 | --- | --- | ---
-Sprint 4 Review | 0 % | 16/08/2026 | 1,3,4,5,6,7
-Sprint 5 Review | 0 % | 06/09/2026 | 1,3,4,5,6,7
-Sprint 6 Review | 0 % | 11/10/2026 | 1,3,4,5,6,7
-Poster & Pitch | 5 % | 18/10/2026 | 1,4
-Final Deliverable | 15 % | 31/10/2026 | 1,3,4,5,6,7
-Reflection 2 | 10 % | 08/11/2026 | 2
-Sprint Grade Case for Sprints 4-6 | 30 % | 08/11/2026 | 1,3,4,5,6,7
+| Assessment task                   | Value | Due Date   | Learning Outcomes |
+|-----------------------------------|-------|------------|-------------------|
+| Semester 1                        | ---   | ---        | ---               |
+| Sprint 1 Review                   | 0 %   | 06/04/2026 | 1,3,4,5,6,7       |
+| Sprint 2 Review                   | 0 %   | 10/05/2026 | 1,3,4,5,6,7       |
+| Sprint 3 Review                   | 0 %   | 31/05/2026 | 1,3,4,5,6,7       |
+| Reflection 1                      | 10 %  | 07/06/2026 | 2                 |
+| Sprint Grade Case for Sprints 1-3 | 30 %  | 07/06/2026 | 1,3,4,5,6,7       |
+| Semester 2                        | ---   | ---        | ---               |
+| Sprint 4 Review                   | 0 %   | 16/08/2026 | 1,3,4,5,6,7       |
+| Sprint 5 Review                   | 0 %   | 06/09/2026 | 1,3,4,5,6,7       |
+| Sprint 6 Review                   | 0 %   | 11/10/2026 | 1,3,4,5,6,7       |
+| Poster & Pitch                    | 5 %   | 18/10/2026 | 1,4               |
+| Final Deliverable                 | 15 %  | 31/10/2026 | 1,3,4,5,6,7       |
+| Reflection 2                      | 10 %  | 08/11/2026 | 2                 |
+| Sprint Grade Case for Sprints 4-6 | 30 %  | 08/11/2026 | 1,3,4,5,6,7       |
 
 ## Checklist
 
@@ -56,7 +56,7 @@ This Checklist provides examples of good practice to meet the sprint rubric outc
 - Map Product Backlog Items (PBI) to applicable goals and milestones
 - Use Planning Poker to create (and revise) estimates for PBIs. Teams may use simple deadlines during early stages of their project
 - Assign PBIs to appropriate team members, set clear responsibilities and feasible deadlines (based on estimates)
-- Prioritise backlog items based on project goals, user needs, and stakeholder input
+- Prioritize backlog items based on project goals, user needs, and stakeholder input
 - Identify and manage risks
 - Monitor team velocity and feed it into planning/estimation activities for subsequent sprints
 
@@ -69,7 +69,7 @@ This Checklist provides examples of good practice to meet the sprint rubric outc
 - Conduct unit, integration, and other testing as relevant to the project
 - Conduct peer reviews of code, documentation, or designs
 - Actively monitor and respond to technical or project challenges (e.g. delays, scope changes, blockers)
-- Summarise the impact of work completed to date (e.g. user value, stakeholder benefit, relevance to real-world use)\
+- Summarize the impact of work completed to date (e.g. user value, stakeholder benefit, relevance to real-world use)\
 
 ### Reflection and Improvement
 
@@ -87,7 +87,7 @@ This Checklist provides examples of good practice to meet the sprint rubric outc
 - Tutors meet with each team every week for approximately 30 minutes and observe teams during the day as they work in The Hive. Students are expected to attend for eight hours a day on each of the three days that form a single sprint.
 - At the end of each sprint, students are expected to walk through their sprint work with tutors, addressing all relevant aspects of the rubric criteria. This is a chance to review your work, clarify questions, and receive feedback. Students may refer to the Sprint Checklist available on Canvas for possible items to discuss during this meeting.
 - Students will not receive marks after each sprint. Instead, tutors will provide feedback to guide the progress and Course Convenor will assign an indicative grade band.
-- At the end of the semester, each team should submit a Sprint Grade Case summarising their progress and contributions across all three sprints. The submission must explicitly state the overall grade being requested, and indicate the grade bands the team believes are met for each rubric criterion. Please refer to the Sprint Grade Case template on Canvas for full details.
+- At the end of the semester, each team should submit a Sprint Grade Case summarizing their progress and contributions across all three sprints. The submission must explicitly state the overall grade being requested, and indicate the grade bands the team believes are met for each rubric criterion. Please refer to the Sprint Grade Case template on Canvas for full details.
 - Each student must submit the Team Contribution Form individually on Canvas after each sprint (due the same day as their sprint review) and after the Sprint Grade Case (due the same day as the Grade Case submission).
 
 ### Stakeholder Engagement (20%)
