@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Drupal\policy_evidence_interface\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
-use Symfony\Component\HttpFoundation\Response;
 use Smalot\PdfParser\Parser;
 
 final class PdfReaderController extends ControllerBase {
