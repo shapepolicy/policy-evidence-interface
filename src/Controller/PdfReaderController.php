@@ -90,14 +90,19 @@ final class PdfReaderController extends ControllerBase {
     if ($public_files_dir === FALSE || $root_dir === FALSE) {
       return [NULL, 'Configured directory does not exist.'];
     }
-    if (!str_starts_with($root_dir, $public_files_dir)) {
+    $public_files_prefix = rtrim($public_files_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    $root_dir_prefix = rtrim($root_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    if ($root_dir !== $public_files_dir && !str_starts_with($root_dir_prefix, $public_files_prefix)) {
       return [NULL, 'Configured directory must be inside sites/default/files.'];
     }
 
     $full_path = $root_dir . DIRECTORY_SEPARATOR . $pdf_file;
     $resolved_file = realpath($full_path);
-    if ($resolved_file !== FALSE && !str_starts_with($resolved_file, $root_dir)) {
-      return [NULL, 'Resolved file path escapes configured directory.'];
+    if ($resolved_file !== FALSE) {
+      $resolved_file_prefix = rtrim($resolved_file, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+      if ($resolved_file !== $root_dir && !str_starts_with($resolved_file_prefix, $root_dir_prefix)) {
+        return [NULL, 'Resolved file path escapes configured directory.'];
+      }
     }
 
     return [$full_path, NULL];
