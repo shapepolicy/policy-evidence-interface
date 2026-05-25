@@ -95,7 +95,13 @@ final class PolicyEvidenceInterfaceSettingsForm extends ConfigFormBase {
     $pdf_root_path = (string) $form_state->getValue('pdf_root_path');
     $full_root_path = realpath(DRUPAL_ROOT . '/' . ltrim($pdf_root_path, '/'));
     $public_files_dir = realpath(DRUPAL_ROOT . '/sites/default/files');
-    if ($full_root_path === FALSE || $public_files_dir === FALSE || !str_starts_with($full_root_path, $public_files_dir)) {
+    $public_files_prefix = $public_files_dir !== FALSE ? rtrim($public_files_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR : NULL;
+    $full_root_prefix = $full_root_path !== FALSE ? rtrim($full_root_path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR : NULL;
+    if (
+      $full_root_path === FALSE
+      || $public_files_dir === FALSE
+      || ($full_root_path !== $public_files_dir && !str_starts_with((string) $full_root_prefix, (string) $public_files_prefix))
+    ) {
       $form_state->setErrorByName('pdf_root_path', $this->t('PDF root path must exist and be inside sites/default/files.'));
     }
     parent::validateForm($form, $form_state);
