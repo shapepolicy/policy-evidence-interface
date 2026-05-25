@@ -100,6 +100,12 @@ final class PolicyEvidence {
   
     $config = $this->configFactory->get('policy_evidence_interface.settings');
     $enabledTypes = $config->get('enabled_content_types') ?? [];
+
+    if (empty($enabledTypes)) {
+      return [
+        'error' => 'No content types enabled.',
+      ];
+    }
   
     $node = $this->entityTypeManager
       ->getStorage('node')
@@ -117,7 +123,7 @@ final class PolicyEvidence {
       ];
     }
   
-    if (!empty($enabledTypes) && !in_array($node->bundle(), $enabledTypes, TRUE)) {
+    if (!in_array($node->bundle(), $enabledTypes, TRUE)) {
       return [
         'error' => 'This content type is not enabled for policy search.',
       ];
