@@ -1,0 +1,9 @@
+access mcp server:
+  title: 'Access MCP Server'
+  description: 'Allows access to the MCP server endpoint.'
+  restrict access: TRUE
+
+administer mcp server:
+  title: 'Administer MCP Server'
+  description: 'Administer MCP server settings and view all available tools/resources.'
+  restrict access: TRUE
