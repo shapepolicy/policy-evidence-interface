@@ -54,10 +54,10 @@ final class PolicyEvidence {
       ->condition('type', $enabledTypes, 'IN')
       ->range(0, $maxResults);
   
-    $escapedQueryText = $query->escapeLike($queryText);
+  
     $or = $query->orConditionGroup()
-      ->condition('title', '%' . $escapedQueryText . '%', 'LIKE')
-      ->condition('body.value', '%' . $escapedQueryText . '%', 'LIKE');
+      ->condition('title', '%' . $queryText . '%', 'LIKE')
+      ->condition('body.value', '%' . $queryText . '%', 'LIKE');
   
     $query->condition($or);
   
