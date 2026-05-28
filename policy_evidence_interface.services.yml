@@ -1,4 +1,12 @@
 services:
+  policy_evidence_interface.tool_manager:
+    class: Drupal\policy_evidence_interface\McpToolManager
+    arguments: ['@plugin.manager.policy_evidence_interface.tool']
+
+  policy_evidence_interface.resource_manager:
+    class: Drupal\policy_evidence_interface\McpResourceManager
+    arguments: ['@plugin.manager.policy_evidence_interface.resource']
+
   plugin.manager.policy_evidence_interface.tool:
     class: Drupal\policy_evidence_interface\Plugin\McpToolPluginManager
     parent: default_plugin_manager
