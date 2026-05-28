@@ -21,3 +21,12 @@ policy_evidence_interface.pdf_reader_read:
     _title: 'pdf reader read'
   requirements:
     _permission: 'administer site configuration'
+
+policy_evidence_interface.mcp:
+  path: '/policy-evidence/mcp'
+  defaults:
+    _controller: '\Drupal\policy_evidence_interface\Controller\McpController::handle'
+    _title: 'Policy Evidence MCP'
+  requirements:
+    _permission: 'access content'
+  methods: [POST]
