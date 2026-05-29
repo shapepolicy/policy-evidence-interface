@@ -21,3 +21,14 @@ policy_evidence_interface.pdf_reader_read:
     _title: 'pdf reader read'
   requirements:
     _permission: 'Access Content'
+
+policy_evidence_interface.endpoint:
+  path: '/_mcp'
+  defaults:
+    _controller: '\Drupal\policy_evidence_interface\Controller\McpServerController::handle'
+    _title: 'MCP Server'
+  requirements:
+    _permission: 'access mcp server'
+  methods: [GET, POST, OPTIONS]
+  options:
+    no_cache: TRUE
