@@ -14,3 +14,8 @@ services:
   plugin.manager.policy_evidence_interface.resource:
     class: Drupal\policy_evidence_interface\Plugin\McpResourcePluginManager
     parent: default_plugin_manager
+  policy_evidence_interface.rate_limiter:
+  class: Drupal\policy_evidence_interface\Service\McpRateLimiter
+  arguments:
+    - '@cache.default'
+    - '@datetime.time'

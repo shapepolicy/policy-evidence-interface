@@ -9,6 +9,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Drupal\policy_evidence_interface\Service\McpRateLimiter;
 
 /**
  * Controller for the MCP server endpoint.
@@ -32,6 +33,7 @@ class McpServerController extends ControllerBase {
   public function __construct(
     protected McpToolPluginManager $toolManager,
     protected McpResourcePluginManager $resourceManager,
+    protected McpRateLimiter $rateLimiter,
   ) {}
 
   /**
@@ -41,6 +43,7 @@ class McpServerController extends ControllerBase {
     return new static(
       $container->get('plugin.manager.policy_evidence_interface.tool'),
       $container->get('plugin.manager.policy_evidence_interface.resource'),
+      $container->get('policy_evidence_interface.rate_limiter'),
     );
   }
 
@@ -187,6 +190,38 @@ class McpServerController extends ControllerBase {
       $toolDef = $plugin->getToolDefinition();
 
       if ($toolDef['name'] === $toolName) {
+         if ($this->currentUser()->isAuthenticated()) {
+          $clientId = 'user:' . $this->currentUser()->id();
+        }
+        else {
+          // The ip message of unknown user
+          $clientIp = \Drupal::request()->getClientIp() ?? 'unknown';
+          $clientId = 'ip:' . $clientIp;
+        }
+
+        // check the tool
+        $rateLimitResult = $this->rateLimiter->check(
+          $clientId,
+          $toolName,
+        );
+
+        // if not allowed, return the message 
+        if (!$rateLimitResult['allowed']) {
+          return [
+            'content' => [
+              [
+                'type' => 'text',
+                'text' => $rateLimitResult['message']
+                  . ' Try again in '
+                  . $rateLimitResult['retry_after']
+                  . ' seconds.',
+              ],
+            ],
+            'isError' => TRUE,
+          ];
+        }
+
+        
         $result = $plugin->execute($arguments);
         return [
           'content' => [
