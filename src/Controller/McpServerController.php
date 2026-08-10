@@ -52,11 +52,43 @@ class McpServerController extends ControllerBase {
    */
   public function handle(Request $request): Response {
     // Handle CORS preflight.
+    //if ($request->getMethod() === 'OPTIONS') {
+    //  return $this->corsResponse(new Response('', 204));
+    //}
     if ($request->getMethod() === 'OPTIONS') {
-      return $this->corsResponse(new Response('', 204));
+      $response = new Response();
+      $response->headers->set('Access-Control-Allow-Origin', '*');
+      $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      return $response;
+    }
+
+    //OAuth successfully authenticated the user
+    $account = $this->currentUser();
+
+    if ($account->isAnonymous()) {
+      // Token was missing, invalid, or expired. Simple OAuth failed to authenticate.
+      return $this->buildUnauthorizedResponse();
+    }
+
+
+
+
+    
+    //if (!$this->tokenGrantsMcpAccess($request)) {
+    //  return $this->buildUnauthorizedResponse();
+    //}
+
+    // if get get request return
+    if ($request->isMethod('GET')) {
+      return new JsonResponse([
+        'status' => 'ok',
+        'message' => 'MCP Endpoint active. Send JSON-RPC via POST requests.',
+      ]);
     }
 
     // All MCP traffic is POST with JSON-RPC body.
+    // mabey change to if ($request->isMethod('POST')) {
     if ($request->getMethod() !== 'POST') {
       return $this->corsResponse(new JsonResponse(
         $this->errorResponse(null, -32600, 'Method not allowed. Use POST.'),
@@ -89,6 +121,86 @@ class McpServerController extends ControllerBase {
     }
 
     return $this->corsResponse(new JsonResponse($result));
+  }
+
+  /**
+   * Verifies the authenticated request's token grants access to this MCP resource.
+   */
+  protected function tokenGrantsMcpAccess(Request $request): bool {
+    // simple_oauth stores the validated token on the request attributes
+    // after authentication succeeds.
+    $token = $request->attributes->get('oauth_token');
+
+    if (!$token) {
+      return FALSE;
+    }
+
+    // Check scope covers this connector. Adjust to match whatever
+    // scope you actually issue (see scopes_supported in your resource metadata).
+    $scopes = $token->get('scopes')->getValue();
+    $scopeNames = array_column($scopes, 'target_id');
+
+    return in_array('mcp_connector_scope', $scopeNames, TRUE);
+  }
+
+
+
+  /**
+   * Resource Metadata Endpoint (/.well-known/oauth-protected-resource)
+   * leave pupblic for routing 
+   */
+  public function getResourceMetadata(Request $request): JsonResponse {
+    $baseUrl = $request->getSchemeAndHttpHost();
+
+    return new JsonResponse([
+      'resource' => $baseUrl . '/_mcp',
+      'authorization_servers' => [
+        $baseUrl
+      ],
+      'scopes_supported' => ['mcp_connector_scope'],
+      'bearer_methods_supported' => ['header'],
+    ]);
+  }
+
+  /**
+   * Authorization Server Metadata Endpoint (/.well-known/oauth-authorization-server)
+   * leave pupblic for routing 
+   */
+  public function getAuthMetadata(Request $request): JsonResponse {
+    $baseUrl = $request->getSchemeAndHttpHost();
+
+    return new JsonResponse([
+      'issuer' => $baseUrl,
+      'authorization_endpoint' => $baseUrl . '/oauth/authorize',
+      'token_endpoint' => $baseUrl . '/oauth/token',
+      //'registration_endpoint' => $baseUrl . '/oauth/register', //enable for Dynamic client registration
+      'response_types_supported' => ['code'],
+      'grant_types_supported' => ['authorization_code', 'refresh_token'],
+      'code_challenge_methods_supported' => ['S256', 'plain'],//['S256'], // Enables PKCE
+      'token_endpoint_auth_methods_supported' => ['client_secret_post', 'client_secret_basic'],//['none', 'client_secret_post'],
+    ]);
+  }
+
+  /**
+   * Dispatches a OAuth 2.1 token error
+   */
+  private function buildUnauthorizedResponse(): JsonResponse {
+    $baseUrl = \Drupal::request()->getSchemeAndHttpHost();
+
+    $response = new JsonResponse(
+        ['error' => 'unauthorized', 'error_description' => 'Bearer token required'],
+        401
+    );
+
+    $response->headers->set(
+        'WWW-Authenticate',
+        sprintf(
+            'Bearer resource_metadata="%s/.well-known/oauth-protected-resource"',
+            $baseUrl
+        )
+    );
+
+    return $response;
   }
 
   /**
