@@ -40,7 +40,7 @@ policy_evidence_interface.resource_metadata_base:
   defaults:
     _controller: '\Drupal\policy_evidence_interface\Controller\McpServerController::getResourceMetadata'
   requirements:
-    _access: 'TRUE'
+    _permission: 'access mcp server'
 
 # Protected Resource Metadata Endpoint (RFC 9728 for MCP)
 policy_evidence_interface.resource_metadata:
@@ -49,7 +49,7 @@ policy_evidence_interface.resource_metadata:
     _controller: '\Drupal\policy_evidence_interface\Controller\McpServerController::getResourceMetadata'
   requirements:
     #_permission: 'access mcp server'
-    _access: 'TRUE' 
+    _permission: 'access mcp server'
 
 # OAuth Server Metadata Endpoint
 policy_evidence_interface.auth_metadata:
@@ -57,4 +57,4 @@ policy_evidence_interface.auth_metadata:
   defaults:
     _controller: '\Drupal\policy_evidence_interface\Controller\McpServerController::getAuthMetadata'
   requirements:
-    _access: 'TRUE'
+    _permission: 'access mcp server'
