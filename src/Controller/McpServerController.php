@@ -72,13 +72,9 @@ class McpServerController extends ControllerBase {
     }
 
 
-
-
+    //login checks
     
-    //if (!$this->tokenGrantsMcpAccess($request)) {
-    //  return $this->buildUnauthorizedResponse();
-    //}
-
+    
     // if get get request return
     if ($request->isMethod('GET')) {
       return new JsonResponse([
@@ -124,28 +120,6 @@ class McpServerController extends ControllerBase {
   }
 
   /**
-   * Verifies the authenticated request's token grants access to this MCP resource.
-   */
-  protected function tokenGrantsMcpAccess(Request $request): bool {
-    // simple_oauth stores the validated token on the request attributes
-    // after authentication succeeds.
-    $token = $request->attributes->get('oauth_token');
-
-    if (!$token) {
-      return FALSE;
-    }
-
-    // Check scope covers this connector. Adjust to match whatever
-    // scope you actually issue (see scopes_supported in your resource metadata).
-    $scopes = $token->get('scopes')->getValue();
-    $scopeNames = array_column($scopes, 'target_id');
-
-    return in_array('mcp_connector_scope', $scopeNames, TRUE);
-  }
-
-
-
-  /**
    * Resource Metadata Endpoint (/.well-known/oauth-protected-resource)
    * leave pupblic for routing 
    */
@@ -168,17 +142,19 @@ class McpServerController extends ControllerBase {
    */
   public function getAuthMetadata(Request $request): JsonResponse {
     $baseUrl = $request->getSchemeAndHttpHost();
-
-    return new JsonResponse([
+    
+    $config = \Drupal::config('policy_evidence_interface.settings');
+    $metadata =[
       'issuer' => $baseUrl,
       'authorization_endpoint' => $baseUrl . '/oauth/authorize',
       'token_endpoint' => $baseUrl . '/oauth/token',
-      //'registration_endpoint' => $baseUrl . '/oauth/register', //enable for Dynamic client registration
       'response_types_supported' => ['code'],
       'grant_types_supported' => ['authorization_code', 'refresh_token'],
-      'code_challenge_methods_supported' => ['S256', 'plain'],//['S256'], // Enables PKCE
-      'token_endpoint_auth_methods_supported' => ['client_secret_post', 'client_secret_basic'],//['none', 'client_secret_post'],
-    ]);
+      'code_challenge_methods_supported' => ['S256'],// Enables PKCE
+      //['client_secret_post', 'client_secret_basic'],//only if client is confidential
+      'token_endpoint_auth_methods_supported' => ['none'], 
+    ];
+    return new JsonResponse($metadata);
   }
 
   /**
