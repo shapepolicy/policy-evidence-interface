@@ -64,17 +64,20 @@ class McpServerController extends ControllerBase {
     }
 
     //OAuth successfully authenticated the user
-    $account = $this->currentUser();
+    $account = \Drupal::currentUser();
 
+    //likely redundant
     if ($account->isAnonymous()) {
       // Token was missing, invalid, or expired. Simple OAuth failed to authenticate.
       return $this->buildUnauthorizedResponse();
     }
-
-
-    //login checks
-    
-    
+    // simple roles based filter
+    // Check if the user DOES NOT have the 'mcp_connector' role
+    if (!in_array('mcp_connector', $account->getRoles())) {
+      // User does NOT have the 'mcp_connector' role 
+      return $this->buildUnauthorizedResponse();
+    }
+        
     // if get get request return
     if ($request->isMethod('GET')) {
       return new JsonResponse([
@@ -193,11 +196,7 @@ class McpServerController extends ControllerBase {
     $consumer = $storage->load(reset($consumer_ids));
     //simple oauth uses Client ID rather than uuid
     $client_id = $consumer->get('client_id')->value;
-
-    \Drupal::logger('mockregister')->info('consumer id %name ', [
-      '%name' => $client_id,
-    ]);
-     
+ 
     // extract redirect URIs configured on the consumer
     $registered_redirects = [];
     if ($consumer->hasField('redirect') && !$consumer->get('redirect')->isEmpty()) {
