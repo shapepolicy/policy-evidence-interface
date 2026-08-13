@@ -48,7 +48,7 @@ class McpServerController extends ControllerBase {
    * Main handler for all MCP requests.
    */
   public function handle(Request $request): Response {
-     Handle CORS preflight.
+    // Handle CORS preflight.
     if ($request->getMethod() === 'OPTIONS') {
       return $this->corsResponse(new Response('', 204));
     }
