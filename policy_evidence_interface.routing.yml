@@ -58,3 +58,13 @@ policy_evidence_interface.auth_metadata:
     _controller: '\Drupal\policy_evidence_interface\Controller\McpServerController::getAuthMetadata'
   requirements:
     _permission: 'access mcp server'
+
+# Mocked OAuth Server client register Give Client id
+# wont dynamically add client you will need to preset a conusmer to pcke
+policy_evidence_interface.register:
+  path: '/oauth/getclientid'
+  defaults:
+    _controller: '\Drupal\policy_evidence_interface\Controller\McpServerController::mockedRegister'
+  requirements:
+    _permission: 'access mcp server'
+  methods: [POST]
