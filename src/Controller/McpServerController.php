@@ -119,6 +119,10 @@ class McpServerController extends ControllerBase {
     return $this->corsResponse(new JsonResponse($result));
   }
 
+  // ---------------------------------------------------------------------------
+  // Oauth 
+  // ---------------------------------------------------------------------------
+
   /**
    * Resource Metadata Endpoint (/.well-known/oauth-protected-resource)
    * leave pupblic for routing 
@@ -143,7 +147,6 @@ class McpServerController extends ControllerBase {
   public function getAuthMetadata(Request $request): JsonResponse {
     $baseUrl = $request->getSchemeAndHttpHost();
     
-    $config = \Drupal::config('policy_evidence_interface.settings');
     $metadata =[
       'issuer' => $baseUrl,
       'authorization_endpoint' => $baseUrl . '/oauth/authorize',
@@ -152,9 +155,75 @@ class McpServerController extends ControllerBase {
       'grant_types_supported' => ['authorization_code', 'refresh_token'],
       'code_challenge_methods_supported' => ['S256'],// Enables PKCE
       //['client_secret_post', 'client_secret_basic'],//only if client is confidential
-      'token_endpoint_auth_methods_supported' => ['none'], 
+      'token_endpoint_auth_methods_supported' => ['none'], // public client non confidential
+      //Bypassing the /oauth/register as simple oauth doesn't support
+      //Will pass a set public client id 
+      'registration_endpoint' =>  $baseUrl . '/oauth/getclientid', // '/oauth/authorize'
     ];
     return new JsonResponse($metadata);
+  }
+  
+  /**
+   * Mocks oauth dynamic client register functionality 
+   * so that it has dcr functionality 
+   * meaning that user dones't need to pass along a client id
+   *  
+   */
+  public function mockedRegister(Request $request): JsonResponse {
+    $baseUrl = $request->getSchemeAndHttpHost();
+ 
+    // Query for your pre-established Consumer entity
+    $entity_type_manager = $this->entityTypeManager();
+    $storage = $entity_type_manager->getStorage('consumer');
+
+    //  find consumer with label 'mcp connector'
+    $consumer_ids = $storage->getQuery()
+      ->condition('label', 'mcp connector')
+      ->accessCheck(FALSE)
+      ->range(0, 1)
+      ->execute();
+
+    if (empty($consumer_ids)) {
+      return new JsonResponse([
+        'error' => 'invalid_client_metadata',
+        'error_description' => 'Pre-established PKCE consumer not configured.',
+      ], Response::HTTP_BAD_REQUEST);
+    }
+
+    $consumer = $storage->load(reset($consumer_ids));
+    //simple oauth uses Client ID rather than uuid
+    $client_id = $consumer->get('client_id')->value;
+
+    \Drupal::logger('mockregister')->info('consumer id %name ', [
+      '%name' => $client_id,
+    ]);
+     
+    // extract redirect URIs configured on the consumer
+    $registered_redirects = [];
+    if ($consumer->hasField('redirect') && !$consumer->get('redirect')->isEmpty()) {
+      foreach ($consumer->get('redirect') as $item) {
+        $registered_redirects[] = $item->value;
+      }
+    }
+    
+    $metadata = [
+      'client_id' => $client_id,
+      'redirect_uris' => $registered_redirects,
+      'grant_types' => [
+        'authorization_code',
+        'refresh_token',
+      ],
+      'response_types' => [
+        'code',
+      ],
+      'token_endpoint_auth_method' => 'none', // Required for PKCE public clients
+      'code_challenge_method' => 'S256',
+    ];
+
+    return new JsonResponse($metadata, Response::HTTP_CREATED, [
+      'Cache-Control' => 'no-store',
+      'Pragma' => 'no-cache',
+    ]);
   }
 
   /**
