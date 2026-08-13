@@ -48,18 +48,11 @@ class McpServerController extends ControllerBase {
    * Main handler for all MCP requests.
    */
   public function handle(Request $request): Response {
-    // Handle CORS preflight.
-    //if ($request->getMethod() === 'OPTIONS') {
-    //  return $this->corsResponse(new Response('', 204));
-    //}
+     Handle CORS preflight.
     if ($request->getMethod() === 'OPTIONS') {
-      $response = new Response();
-      $response->headers->set('Access-Control-Allow-Origin', '*');
-      $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-      return $response;
+      return $this->corsResponse(new Response('', 204));
     }
-
+    
     //OAuth successfully authenticated the user
     $account = \Drupal::currentUser();
 
