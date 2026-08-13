@@ -121,7 +121,7 @@ class McpServerController extends ControllerBase {
 
   /**
    * Resource Metadata Endpoint (/.well-known/oauth-protected-resource)
-   * leave pupblic for routing 
+   *  
    */
   public function getResourceMetadata(Request $request): JsonResponse {
     $baseUrl = $request->getSchemeAndHttpHost();
@@ -138,7 +138,7 @@ class McpServerController extends ControllerBase {
 
   /**
    * Authorization Server Metadata Endpoint (/.well-known/oauth-authorization-server)
-   * leave pupblic for routing 
+   * 
    */
   public function getAuthMetadata(Request $request): JsonResponse {
     $baseUrl = $request->getSchemeAndHttpHost();
@@ -152,8 +152,6 @@ class McpServerController extends ControllerBase {
       'code_challenge_methods_supported' => ['S256'],// Enables PKCE
       //['client_secret_post', 'client_secret_basic'],//only if client is confidential
       'token_endpoint_auth_methods_supported' => ['none'], // public client non confidential
-      //Bypassing the /oauth/register as simple oauth doesn't support
-      //Will pass a set public client id 
       'registration_endpoint' =>  $baseUrl . '/oauth/getclientid', // '/oauth/authorize'
     ];
     return new JsonResponse($metadata);
