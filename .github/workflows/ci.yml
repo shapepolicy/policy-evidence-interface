@@ -50,6 +50,7 @@ jobs:
       - name: Install Drupal 11 test dependencies
         run: |
           composer update --no-interaction --no-progress --prefer-dist
+          # shellcheck disable=SC2016
           composer show drupal/core --format=json \
             | php -r '$package = json_decode(stream_get_contents(STDIN), TRUE, flags: JSON_THROW_ON_ERROR); exit(str_starts_with($package["versions"][0], "11.") ? 0 : 1);'
 
@@ -65,12 +66,13 @@ jobs:
   client-stack:
     name: Client stack (Drupal 10.6.7, PHP 8.3.29, Drush 12.5.3)
     runs-on: ubuntu-latest
-    env:
-      CLIENT_SITE: ${{ runner.temp }}/policy-evidence-drupal
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Prepare client test workspace
+        run: echo "CLIENT_SITE=$RUNNER_TEMP/policy-evidence-drupal" >> "$GITHUB_ENV"
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -142,7 +144,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build module source archive
-        run: git archive --format=zip --prefix=policy_evidence_interface/ --output=policy_evidence_interface-${GITHUB_SHA::7}.zip HEAD
+        run: git archive --format=zip --prefix=policy_evidence_interface/ --output="policy_evidence_interface-${GITHUB_SHA::7}.zip" HEAD
 
       - name: Upload module archive
         uses: actions/upload-artifact@v4
