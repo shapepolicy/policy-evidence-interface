@@ -1,128 +1,91 @@
 # Policy Evidence Interface
 
-A Drupal module that exposes published site content to AI clients through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). It supports JSON-RPC over HTTP and newline-delimited JSON-RPC over Drush stdio.
+A Drupal module that exposes published content to AI clients through the
+[Model Context Protocol (MCP)](https://modelcontextprotocol.io/) over HTTP or
+Drush stdio.
 
-## Target environment
-
-- Drupal `10.6.7`
-- PHP `8.3.29`
-- Drush `12.5.3`
-- Composer
-
-These versions are compatible: Drush 12 supports Drupal 10 and PHP 8.1 or newer. The module manifest also permits Drupal 11, although the target environment uses Drupal 10.6.7.
-
-Drupal 10.6.7 is retained here to reproduce the client environment, but it has
-been superseded by [security releases](https://www.drupal.org/sa-core-2026-007)
-in the 10.6 line. Plan a client-tested Drupal patch update; changing the CI pin
-should follow the client upgrade.
+Client target: Drupal `10.6.7`, PHP `8.3.29`, and Drush `12.5.3`. The module also
+supports Drupal 11. Drupal 10.6.7 is retained for compatibility but has been
+superseded by a [security release](https://www.drupal.org/sa-core-2026-007).
 
 ## Features
 
-- Tools for site information, content types, node search, node details, and page-level PDF text extraction.
-- Resources for site information, content types, and the 20 most recently updated nodes.
-- Annotation-based plugin APIs for adding MCP tools and resources.
-- Access control through Drupal's `access mcp server` permission.
+- Site, content-type, node-search, node-detail, and PDF-page tools.
+- Site, content-type, and recent-node resources.
+- Plugin APIs for adding MCP tools and resources.
+- Drupal permission-based access control.
 
-PDF extraction supports file fields named `field_pdf_article`, `field_pdf`, or `field_file`. Scanned or font-encoded PDFs may require OCR and are reported as non-extractable.
+PDF fields may be named `field_pdf_article`, `field_pdf`, or `field_file`.
+Scanned PDFs require OCR.
 
-## Deploy to an existing Drupal site
+## Install (3 commands)
 
-Run these commands from the Drupal project root, where the site's `composer.json`
-and `composer.lock` live:
+Run from the Drupal project root:
 
 ```bash
 composer config repositories.policy-evidence-interface vcs https://github.com/shapepolicy/policy-evidence-interface.git
 composer require "shapepolicy/policy-evidence-interface:dev-main"
 vendor/bin/drush en policy_evidence_interface -y
-vendor/bin/drush updb -y
-vendor/bin/drush cr
 ```
 
-Composer installs Simple OAuth and the PDF parser automatically. Enabling this
-module also enables its Drupal module dependencies; do not install OAuth or a
-second `vendor/` directory inside this module. Commit the Drupal root project's
-`composer.json` and `composer.lock` for deployment.
+Composer installs Simple OAuth and the PDF parser. Keep `composer.json`,
+`composer.lock`, and `vendor/` at the Drupal project root. Grant **Access MCP
+Server** only to trusted roles.
 
-Grant the **Access MCP Server** permission only to trusted roles.
+With DDEV, replace `composer` with `ddev composer` and `vendor/bin/drush` with
+`ddev drush`. For a new Drupal environment, complete the
+[DDEV Drupal quickstart](https://docs.ddev.com/en/stable/users/quickstart/)
+first, then run the same three module-installation commands.
 
-For production, deploy the Drupal root project and run:
+## Test
 
-```bash
-composer install --no-dev --optimize-autoloader
-vendor/bin/drush updb -y
-vendor/bin/drush cr
-```
-
-## Fresh client-stack setup
-
-The shortest reproducible setup for the client's versions is:
-
-```bash
-composer create-project "drupal/recommended-project:10.6.7" policy-evidence-drupal
-cd policy-evidence-drupal
-composer require "drush/drush:12.5.3"
-composer config repositories.policy-evidence-interface vcs https://github.com/shapepolicy/policy-evidence-interface.git
-composer require "shapepolicy/policy-evidence-interface:dev-main"
-vendor/bin/drush site:install standard
-vendor/bin/drush en policy_evidence_interface -y
-vendor/bin/drush cr
-```
-
-The site installation command asks for the database and administrator details.
-If the site already exists, skip `site:install`.
-
-## Testing and delivery
-
-For standalone module development, run these commands from this repository:
+From this module repository:
 
 ```bash
 composer install
 composer test
 ```
 
-The GitHub Actions workflow runs unit tests with Drupal 11 and validates a clean
-install, module enable, Drush discovery, and MCP launch on the client's exact
-Drupal 10.6.7 / PHP 8.3.29 / Drush 12.5.3 stack. Pull requests to `main` run
-once; a successful push to `main` also publishes a module source ZIP. Production
-deployment uses the Drupal root Composer commands above so dependencies and the
-site lock file remain controlled by the client project.
+CI runs Drupal 11 unit tests and verifies installation and Drush discovery on
+Drupal 10.6.7 with Drush 12.5.3 and a Composer PHP 8.3.29 platform. Successful
+pushes to `main` publish a module source ZIP.
 
-## Connecting
+## Deploy
 
-The HTTP endpoint starts with Drupal when the module is enabled; it needs no
-separate server process:
+Run from the deployed Drupal project root:
 
-```text
-https://example.com/_mcp
+```bash
+composer install --no-dev --optimize-autoloader
+vendor/bin/drush en policy_evidence_interface -y
+vendor/bin/drush updb -y
+vendor/bin/drush cr
 ```
 
-For a local stdio MCP client, run this single command from the Drupal project
-root and leave it running:
+## Connect
+
+HTTP is available at `https://example.com/_mcp` when the module is enabled. For
+stdio, leave one of these commands running from the Drupal project root:
 
 ```bash
 vendor/bin/drush mcp:server
-```
-
-For DDEV, use the equivalent command:
-
-```bash
+# DDEV:
 ddev drush mcp:server
 ```
 
 The server implements MCP protocol version `2024-11-05`.
 
-## Available MCP interfaces
+## MCP interfaces
 
 | Type | Name or URI | Purpose |
 | --- | --- | --- |
-| Tool | `get_site_info` | Return site metadata and Drupal version |
-| Tool | `list_content_types` | List configured node bundles |
-| Tool | `search_nodes` | Search published node titles |
-| Tool | `get_node` | Read a published node and its fields |
-| Tool | `read_node_pdf` | Extract one page from an attached PDF |
+| Tool | `get_site_info` | Site metadata and Drupal version |
+| Tool | `list_content_types` | Configured node bundles |
+| Tool | `search_nodes` | Published node title search |
+| Tool | `get_node` | Published node details |
+| Tool | `read_node_pdf` | One page of attached PDF text |
 | Resource | `drupal://site-info` | Site configuration |
 | Resource | `drupal://content-types` | Configured node bundles |
-| Resource | `drupal://recent-nodes` | 20 most recently updated published nodes |
+| Resource | `drupal://recent-nodes` | 20 recently updated nodes |
 
 ## License
 
