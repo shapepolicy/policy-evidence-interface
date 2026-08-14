@@ -1,91 +1,53 @@
 # Policy Evidence Interface
 
-A Drupal module that exposes published content to AI clients through the
-[Model Context Protocol (MCP)](https://modelcontextprotocol.io/) over HTTP or
-Drush stdio.
+A Drupal module that exposes published content to AI clients through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) over HTTP or Drush stdio.
 
-Client target: Drupal `10.6.7`, PHP `8.3.29`, and Drush `12.5.3`. The module also
-supports Drupal 11. Drupal 10.6.7 is retained for compatibility but has been
-superseded by a [security release](https://www.drupal.org/sa-core-2026-007).
+The client target is Drupal `10.6.7`, PHP `8.3.29`, and Drush `12.5.3`; Drupal 11 is also supported. Drupal 10.6.7 is retained for compatibility but has been superseded by a [security release](https://www.drupal.org/sa-core-2026-007).
 
 ## Features
 
-- Site, content-type, node-search, node-detail, and PDF-page tools.
-- Site, content-type, and recent-node resources.
+- Tools for site information, content types, node search, node details, and PDF-page text extraction.
+- Resources for site information, content types, and recently updated nodes.
 - Plugin APIs for adding MCP tools and resources.
 - Drupal permission-based access control.
 
-PDF fields may be named `field_pdf_article`, `field_pdf`, or `field_file`.
-Scanned PDFs require OCR.
+PDF fields may be named `field_pdf_article`, `field_pdf`, or `field_file`. Scanned PDFs may require OCR.
 
-## Install (3 commands)
+## Setup with DDEV
 
-Run from the Drupal project root:
-
-```bash
-composer config repositories.policy-evidence-interface vcs https://github.com/shapepolicy/policy-evidence-interface.git
-composer require "shapepolicy/policy-evidence-interface:dev-main"
-vendor/bin/drush en policy_evidence_interface -y
-```
-
-Composer installs Simple OAuth and the PDF parser. Keep `composer.json`,
-`composer.lock`, and `vendor/` at the Drupal project root. Grant **Access MCP
-Server** only to trusted roles.
-
-With DDEV, replace `composer` with `ddev composer` and `vendor/bin/drush` with
-`ddev drush`. For a new Drupal environment, complete the
-[DDEV Drupal quickstart](https://docs.ddev.com/en/stable/users/quickstart/)
-first, then run the same three module-installation commands.
-
-## Test
-
-From this module repository:
+From an existing DDEV Drupal project root, run:
 
 ```bash
-composer install
-composer test
+ddev start
+ddev composer config repositories.policy-evidence-interface vcs https://github.com/shapepolicy/policy-evidence-interface.git
+ddev composer require "drush/drush:12.5.3" "shapepolicy/policy-evidence-interface:dev-main"
+ddev drush en policy_evidence_interface -y
 ```
 
-CI runs Drupal 11 unit tests and verifies installation and Drush discovery on
-Drupal 10.6.7 with Drush 12.5.3 and a Composer PHP 8.3.29 platform. Successful
-pushes to `main` publish a module source ZIP.
+Composer installs Simple OAuth and the PDF parser automatically. Keep `composer.json`, `composer.lock`, and `vendor/` at the Drupal project root and commit both Composer files. Grant **Access MCP Server** only to trusted roles.
 
-## Deploy
+Confirm the MCP command is available with `ddev drush help mcp:server`. CI runs the unit tests and checks module installation and Drush discovery against the client stack.
 
-Run from the deployed Drupal project root:
+## Use with Claude Desktop
 
-```bash
-composer install --no-dev --optimize-autoloader
-vendor/bin/drush en policy_evidence_interface -y
-vendor/bin/drush updb -y
-vendor/bin/drush cr
+The simplest local connection uses MCP over stdio and does not require OAuth registration. Find the DDEV project name with `ddev describe`, then open **Claude Desktop → Settings → Developer → Edit Config** and add the following entry to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "policy-evidence": {
+      "command": "wsl.exe",
+      "args": ["--", "ddev", "exec", "--project", "YOUR_DDEV_PROJECT", "vendor/bin/drush", "mcp:server"]
+    }
+  }
+}
 ```
 
-## Connect
+This example is for Claude Desktop on Windows with DDEV in WSL. If DDEV is installed directly on the host, use `"command": "ddev"` and begin `args` with `"exec"`. Replace `YOUR_DDEV_PROJECT`, fully quit and reopen Claude Desktop, then enable **policy-evidence** from the chat's **+ → Connectors** menu.
 
-HTTP is available at `https://example.com/_mcp` when the module is enabled. For
-stdio, leave one of these commands running from the Drupal project root:
+Try asking Claude: “List the Drupal content types” or “Search published nodes for housing.” Claude will request approval before using a tool.
 
-```bash
-vendor/bin/drush mcp:server
-# DDEV:
-ddev drush mcp:server
-```
-
-The server implements MCP protocol version `2024-11-05`.
-
-## MCP interfaces
-
-| Type | Name or URI | Purpose |
-| --- | --- | --- |
-| Tool | `get_site_info` | Site metadata and Drupal version |
-| Tool | `list_content_types` | Configured node bundles |
-| Tool | `search_nodes` | Published node title search |
-| Tool | `get_node` | Published node details |
-| Tool | `read_node_pdf` | One page of attached PDF text |
-| Resource | `drupal://site-info` | Site configuration |
-| Resource | `drupal://content-types` | Configured node bundles |
-| Resource | `drupal://recent-nodes` | 20 recently updated nodes |
+Available tools are `get_site_info`, `list_content_types`, `search_nodes`, `get_node`, and `read_node_pdf`. Available resources are `drupal://site-info`, `drupal://content-types`, and `drupal://recent-nodes`. The server implements MCP protocol version `2024-11-05`.
 
 ## License
 
