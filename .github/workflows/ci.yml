@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - "**"
+      - main
   pull_request:
     branches:
       - main
@@ -17,8 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Test (PHP 8.3)
+  unit-tests:
+    name: Unit tests (Drupal 11, PHP 8.3.29)
     runs-on: ubuntu-latest
 
     steps:
@@ -28,7 +28,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.3"
+          php-version: "8.3.29"
           coverage: none
           tools: composer:v2
 
@@ -40,15 +40,18 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-php-8.3-composer-${{ hashFiles('composer.json') }}
+          key: ${{ runner.os }}-php-8.3.29-drupal-11-composer-${{ hashFiles('composer.json') }}
           restore-keys: |
-            ${{ runner.os }}-php-8.3-composer-
+            ${{ runner.os }}-php-8.3.29-drupal-11-composer-
 
       - name: Validate composer.json
         run: composer validate --strict
 
-      - name: Install dependencies
-        run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Install Drupal 11 test dependencies
+        run: |
+          composer update --no-interaction --no-progress --prefer-dist
+          composer show drupal/core --format=json \
+            | php -r '$package = json_decode(stream_get_contents(STDIN), TRUE, flags: JSON_THROW_ON_ERROR); exit(str_starts_with($package["versions"][0], "11.") ? 0 : 1);'
 
       - name: Lint PHP files
         run: |
@@ -59,17 +62,86 @@ jobs:
       - name: Run unit tests
         run: composer test
 
+  client-stack:
+    name: Client stack (Drupal 10.6.7, PHP 8.3.29, Drush 12.5.3)
+    runs-on: ubuntu-latest
+    env:
+      CLIENT_SITE: ${{ runner.temp }}/policy-evidence-drupal
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3.29"
+          coverage: none
+          extensions: pdo_sqlite
+          tools: composer:v2
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php-8.3.29-drupal-10.6.7-drush-12.5.3-composer-${{ hashFiles('composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.3.29-drupal-10.6.7-drush-12.5.3-composer-
+
+      - name: Create exact client project
+        run: |
+          composer create-project drupal/recommended-project:10.6.7 "$CLIENT_SITE" --no-interaction --no-progress
+          cd "$CLIENT_SITE"
+          composer config repositories.policy-evidence-interface path "$GITHUB_WORKSPACE"
+          composer require shapepolicy/policy-evidence-interface:@dev drush/drush:12.5.3 --no-interaction --no-progress
+
+      - name: Install Drupal and enable the module
+        working-directory: ${{ env.CLIENT_SITE }}
+        run: |
+          vendor/bin/drush site:install standard \
+            --db-url=sqlite://../site.sqlite \
+            --site-name="Policy Evidence CI" \
+            --account-name=admin \
+            --account-pass=admin \
+            --yes
+          vendor/bin/drush en policy_evidence_interface --yes
+          vendor/bin/drush cr
+
+      - name: Verify exact client versions
+        working-directory: ${{ env.CLIENT_SITE }}
+        run: |
+          test "$(php -r 'echo PHP_VERSION;')" = "8.3.29"
+          test "$(vendor/bin/drush status --field=drupal-version)" = "10.6.7"
+          test "$(vendor/bin/drush --version)" = "Drush Commandline Tool 12.5.3.0"
+
+      - name: Launch and smoke-test MCP over Drush
+        working-directory: ${{ env.CLIENT_SITE }}
+        run: |
+          set -o pipefail
+          vendor/bin/drush help mcp:server --format=json > /dev/null
+          printf '%s\n' \
+            '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' \
+            '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
+            | vendor/bin/drush mcp:server \
+            | php "$GITHUB_WORKSPACE/tests/Smoke/verify_mcp_output.php"
+
   package:
-    name: Package main branch
+    name: Deliver main branch artifact
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: test
+    needs:
+      - unit-tests
+      - client-stack
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build installable module archive
+      - name: Build module source archive
         run: git archive --format=zip --prefix=policy_evidence_interface/ --output=policy_evidence_interface-${GITHUB_SHA::7}.zip HEAD
 
       - name: Upload module archive

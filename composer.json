@@ -14,7 +14,7 @@
         "smalot/pdfparser": "^2.12"
     },
     "require-dev": {
-        "drupal/core": "^10.6",
+        "drupal/core": "^10.6 || ^11",
         "phpunit/phpunit": "^9.6"
     },
     "autoload": {
@@ -34,7 +34,8 @@
         "allow-plugins": {
             "composer/installers": true,
             "drupal/core-composer-scaffold": false,
-            "php-tuf/composer-stager": false
+            "php-tuf/composer-stager": false,
+            "symfony/runtime": false
         },
         "sort-packages": true
     }
