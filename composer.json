@@ -3,8 +3,39 @@
     "description": "Drupal module providing a policy evidence interface.",
     "type": "drupal-module",
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    ],
     "require": {
         "drupal/simple_oauth": "^6.1",
         "smalot/pdfparser": "^2.12"
+    },
+    "require-dev": {
+        "drupal/core": "^10.6",
+        "phpunit/phpunit": "^9.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "Drupal\\policy_evidence_interface\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Drupal\\Tests\\policy_evidence_interface\\Unit\\": "tests/src/Unit/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit --configuration phpunit.xml.dist"
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true,
+            "drupal/core-composer-scaffold": false,
+            "php-tuf/composer-stager": false
+        },
+        "sort-packages": true
     }
 }

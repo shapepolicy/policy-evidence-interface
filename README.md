@@ -37,6 +37,22 @@ drush cr
 
 Grant the **Access MCP Server** permission only to trusted roles.
 
+## Testing and delivery
+
+Install development dependencies and run the unit test suite:
+
+```bash
+composer install
+composer test
+```
+
+The GitHub Actions workflow validates Composer metadata, installs locked
+dependencies, syntax-checks every tracked PHP file, and runs the MCP protocol
+unit tests for every push and every pull request targeting `main`. After a
+successful push to `main`, it also publishes an installable module ZIP as a
+workflow artifact. Deployment to a protected Drupal environment remains a
+separate, credentialed release step.
+
 ## Connecting
 
 The HTTP endpoint is:

@@ -2,11 +2,23 @@ name: CI
 
 on:
   push:
+    branches:
+      - "**"
   pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  test:
+    name: Test (PHP 8.3)
     runs-on: ubuntu-latest
 
     steps:
@@ -16,8 +28,21 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.2"
+          php-version: "8.3"
+          coverage: none
           tools: composer:v2
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php-8.3-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.3-composer-
 
       - name: Validate composer.json
         run: composer validate --strict
@@ -29,4 +54,28 @@ jobs:
         run: |
           while IFS= read -r -d '' file; do
             php -l "$file"
-          done < <(find . -name "*.php" -print0)
+          done < <(git ls-files -z "*.php")
+
+      - name: Run unit tests
+        run: composer test
+
+  package:
+    name: Package main branch
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build installable module archive
+        run: git archive --format=zip --prefix=policy_evidence_interface/ --output=policy_evidence_interface-${GITHUB_SHA::7}.zip HEAD
+
+      - name: Upload module archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: policy_evidence_interface-${{ github.sha }}
+          path: policy_evidence_interface-*.zip
+          if-no-files-found: error
+          retention-days: 30
