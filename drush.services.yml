@@ -1,8 +1,0 @@
-services:
-  policy_evidence_interface.commands:
-    class: Drupal\policy_evidence_interface\Commands\McpServerCommands
-    arguments:
-      - '@plugin.manager.policy_evidence_interface.tool'
-      - '@plugin.manager.policy_evidence_interface.resource'
-    tags:
-      - { name: drush.command }

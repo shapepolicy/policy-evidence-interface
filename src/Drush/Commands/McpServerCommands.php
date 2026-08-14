@@ -1,12 +1,14 @@
 <?php
 
-namespace Drupal\policy_evidence_interface\Commands;
+namespace Drupal\policy_evidence_interface\Drush\Commands;
 
-use Drupal\policy_evidence_interface\Plugin\McpToolPluginManager;
-use Drupal\policy_evidence_interface\Plugin\McpResourcePluginManager;
 use Drupal\policy_evidence_interface\Controller\McpServerController;
+use Drupal\policy_evidence_interface\Plugin\McpResourcePluginManager;
+use Drupal\policy_evidence_interface\Plugin\McpToolPluginManager;
+use Drush\Attributes as CLI;
+use Drush\Commands\AutowireTrait;
 use Drush\Commands\DrushCommands;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
  * Drush commands for the MCP server.
@@ -18,8 +20,12 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class McpServerCommands extends DrushCommands {
 
+  use AutowireTrait;
+
   public function __construct(
+    #[Autowire(service: 'plugin.manager.policy_evidence_interface.tool')]
     protected McpToolPluginManager $toolManager,
+    #[Autowire(service: 'plugin.manager.policy_evidence_interface.resource')]
     protected McpResourcePluginManager $resourceManager,
   ) {
     parent::__construct();
@@ -27,11 +33,9 @@ class McpServerCommands extends DrushCommands {
 
   /**
    * Runs the MCP server over stdio (newline-delimited JSON-RPC).
-   *
-   * @command mcp:server
-   * @aliases mcp-server
-   * @description Start the MCP server and listen for JSON-RPC messages on stdin.
    */
+  #[CLI\Command(name: 'mcp:server', aliases: ['mcp-server'])]
+  #[CLI\Usage(name: 'drush mcp:server', description: 'Start the MCP stdio server.')]
   public function server(): void {
     // Silence all Drupal/PHP output so only our JSON goes to stdout.
     // Drush may have already bootstrapped and printed things — reset.

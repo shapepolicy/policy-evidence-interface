@@ -22,10 +22,12 @@ PDF extraction supports file fields named `field_pdf_article`, `field_pdf`, or `
 
 ## Installation
 
-From this module directory, install the PDF parser:
+Install the module from the Drupal project root. Composer installs Simple OAuth
+and the PDF parser automatically from this module's declared dependencies:
 
 ```bash
-composer install
+composer config repositories.policy-evidence-interface vcs https://github.com/shapepolicy/policy-evidence-interface.git
+composer require shapepolicy/policy-evidence-interface:dev-main
 ```
 
 Enable the module and clear Drupal's cache:
@@ -39,15 +41,15 @@ Grant the **Access MCP Server** permission only to trusted roles.
 
 ## Testing and delivery
 
-Install development dependencies and run the unit test suite:
+For standalone module development, run these commands from this repository:
 
 ```bash
 composer install
 composer test
 ```
 
-The GitHub Actions workflow validates Composer metadata, installs locked
-dependencies, syntax-checks every tracked PHP file, and runs the MCP protocol
+The GitHub Actions workflow validates Composer metadata, resolves dependencies,
+syntax-checks every tracked PHP file, and runs the MCP protocol
 unit tests for every push and every pull request targeting `main`. After a
 successful push to `main`, it also publishes an installable module ZIP as a
 workflow artifact. Deployment to a protected Drupal environment remains a
