@@ -4,6 +4,7 @@
     "type": "drupal-module",
     "license": "MIT",
     "require": {
+        "drupal/simple_oauth": "^6.1",
         "smalot/pdfparser": "^2.12"
     }
 }

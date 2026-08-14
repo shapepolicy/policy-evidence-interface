@@ -32,3 +32,39 @@ policy_evidence_interface.endpoint:
   methods: [GET, POST, OPTIONS]
   options:
     no_cache: TRUE
+    _auth: ['oauth2'] # Enables Simple OAuth authentication middleware
+    
+# Standard RFC 9728 Protected Resource Metadata Endpoint
+policy_evidence_interface.resource_metadata_base:
+  path: '/.well-known/oauth-protected-resource'
+  defaults:
+    _controller: '\Drupal\policy_evidence_interface\Controller\McpServerController::getResourceMetadata'
+  requirements:
+    _permission: 'access mcp server'
+
+# Protected Resource Metadata Endpoint (RFC 9728 for MCP)
+policy_evidence_interface.resource_metadata:
+  path: '/.well-known/oauth-protected-resource/_mcp'
+  defaults:
+    _controller: '\Drupal\policy_evidence_interface\Controller\McpServerController::getResourceMetadata'
+  requirements:
+    #_permission: 'access mcp server'
+    _permission: 'access mcp server'
+
+# OAuth Server Metadata Endpoint
+policy_evidence_interface.auth_metadata:
+  path: '/.well-known/oauth-authorization-server'
+  defaults:
+    _controller: '\Drupal\policy_evidence_interface\Controller\McpServerController::getAuthMetadata'
+  requirements:
+    _permission: 'access mcp server'
+
+# Mocked OAuth Server client register Give Client id
+# wont dynamically add client you will need to preset a conusmer to pcke
+policy_evidence_interface.register:
+  path: '/oauth/getclientid'
+  defaults:
+    _controller: '\Drupal\policy_evidence_interface\Controller\McpServerController::mockedRegister'
+  requirements:
+    _permission: 'access mcp server'
+  methods: [POST]

@@ -52,8 +52,32 @@ class McpServerController extends ControllerBase {
     if ($request->getMethod() === 'OPTIONS') {
       return $this->corsResponse(new Response('', 204));
     }
+    
+    //OAuth successfully authenticated the user
+    $account = \Drupal::currentUser();
+
+    //likely redundant
+    if ($account->isAnonymous()) {
+      // Token was missing, invalid, or expired. Simple OAuth failed to authenticate.
+      return $this->buildUnauthorizedResponse();
+    }
+    // simple roles based filter
+    // Check if the user DOES NOT have the 'mcp_connector' role
+    if (!in_array('mcp_connector', $account->getRoles())) {
+      // User does NOT have the 'mcp_connector' role 
+      return $this->buildUnauthorizedResponse();
+    }
+        
+    // if get get request return
+    if ($request->isMethod('GET')) {
+      return new JsonResponse([
+        'status' => 'ok',
+        'message' => 'MCP Endpoint active. Send JSON-RPC via POST requests.',
+      ]);
+    }
 
     // All MCP traffic is POST with JSON-RPC body.
+    // mabey change to if ($request->isMethod('POST')) {
     if ($request->getMethod() !== 'POST') {
       return $this->corsResponse(new JsonResponse(
         $this->errorResponse(null, -32600, 'Method not allowed. Use POST.'),
@@ -86,6 +110,129 @@ class McpServerController extends ControllerBase {
     }
 
     return $this->corsResponse(new JsonResponse($result));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Oauth 
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Resource Metadata Endpoint (/.well-known/oauth-protected-resource)
+   *  
+   */
+  public function getResourceMetadata(Request $request): JsonResponse {
+    $baseUrl = $request->getSchemeAndHttpHost();
+
+    return new JsonResponse([
+      'resource' => $baseUrl . '/_mcp',
+      'authorization_servers' => [
+        $baseUrl
+      ],
+      'scopes_supported' => ['mcp_connector_scope'],
+      'bearer_methods_supported' => ['header'],
+    ]);
+  }
+
+  /**
+   * Authorization Server Metadata Endpoint (/.well-known/oauth-authorization-server)
+   * 
+   */
+  public function getAuthMetadata(Request $request): JsonResponse {
+    $baseUrl = $request->getSchemeAndHttpHost();
+    
+    $metadata =[
+      'issuer' => $baseUrl,
+      'authorization_endpoint' => $baseUrl . '/oauth/authorize',
+      'token_endpoint' => $baseUrl . '/oauth/token',
+      'response_types_supported' => ['code'],
+      'grant_types_supported' => ['authorization_code', 'refresh_token'],
+      'code_challenge_methods_supported' => ['S256'],// Enables PKCE
+      //['client_secret_post', 'client_secret_basic'],//only if client is confidential
+      'token_endpoint_auth_methods_supported' => ['none'], // public client non confidential
+      'registration_endpoint' =>  $baseUrl . '/oauth/getclientid', // '/oauth/authorize'
+    ];
+    return new JsonResponse($metadata);
+  }
+  
+  /**
+   * Mocks oauth dynamic client register functionality 
+   * so that it has dcr functionality 
+   * meaning that user dones't need to pass along a client id
+   *  
+   */
+  public function mockedRegister(Request $request): JsonResponse {
+    $baseUrl = $request->getSchemeAndHttpHost();
+ 
+    // Query for your pre-established Consumer entity
+    $entity_type_manager = $this->entityTypeManager();
+    $storage = $entity_type_manager->getStorage('consumer');
+
+    //  find consumer with label 'mcp connector'
+    $consumer_ids = $storage->getQuery()
+      ->condition('label', 'mcp connector')
+      ->accessCheck(FALSE)
+      ->range(0, 1)
+      ->execute();
+
+    if (empty($consumer_ids)) {
+      return new JsonResponse([
+        'error' => 'invalid_client_metadata',
+        'error_description' => 'Pre-established PKCE consumer not configured.',
+      ], Response::HTTP_BAD_REQUEST);
+    }
+
+    $consumer = $storage->load(reset($consumer_ids));
+    //simple oauth uses Client ID rather than uuid
+    $client_id = $consumer->get('client_id')->value;
+ 
+    // extract redirect URIs configured on the consumer
+    $registered_redirects = [];
+    if ($consumer->hasField('redirect') && !$consumer->get('redirect')->isEmpty()) {
+      foreach ($consumer->get('redirect') as $item) {
+        $registered_redirects[] = $item->value;
+      }
+    }
+    
+    $metadata = [
+      'client_id' => $client_id,
+      'redirect_uris' => $registered_redirects,
+      'grant_types' => [
+        'authorization_code',
+        'refresh_token',
+      ],
+      'response_types' => [
+        'code',
+      ],
+      'token_endpoint_auth_method' => 'none', // Required for PKCE public clients
+      'code_challenge_method' => 'S256',
+    ];
+
+    return new JsonResponse($metadata, Response::HTTP_CREATED, [
+      'Cache-Control' => 'no-store',
+      'Pragma' => 'no-cache',
+    ]);
+  }
+
+  /**
+   * Dispatches a OAuth 2.1 token error
+   */
+  private function buildUnauthorizedResponse(): JsonResponse {
+    $baseUrl = \Drupal::request()->getSchemeAndHttpHost();
+
+    $response = new JsonResponse(
+        ['error' => 'unauthorized', 'error_description' => 'Bearer token required'],
+        401
+    );
+
+    $response->headers->set(
+        'WWW-Authenticate',
+        sprintf(
+            'Bearer resource_metadata="%s/.well-known/oauth-protected-resource"',
+            $baseUrl
+        )
+    );
+
+    return $response;
   }
 
   /**

@@ -6,3 +6,4 @@ core_version_requirement: ^10 || ^11
 dependencies:
   - drupal:serialization
   - drupal:user
+  - simple_oauth:simple_oauth
