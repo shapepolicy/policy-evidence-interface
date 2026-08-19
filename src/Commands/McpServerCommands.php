@@ -4,6 +4,7 @@ namespace Drupal\policy_evidence_interface\Commands;
 
 use Drupal\policy_evidence_interface\Plugin\McpToolPluginManager;
 use Drupal\policy_evidence_interface\Plugin\McpResourcePluginManager;
+use Drupal\policy_evidence_interface\Service\McpRateLimiter;
 use Drupal\policy_evidence_interface\Controller\McpServerController;
 use Drush\Commands\DrushCommands;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,6 +22,7 @@ class McpServerCommands extends DrushCommands {
   public function __construct(
     protected McpToolPluginManager $toolManager,
     protected McpResourcePluginManager $resourceManager,
+    protected McpRateLimiter $rateLimiter,
   ) {
     parent::__construct();
   }
@@ -161,10 +163,44 @@ class McpServerCommands extends DrushCommands {
       $plugin  = $this->toolManager->createInstance($id);
       $toolDef = $plugin->getToolDefinition();
       if ($toolDef['name'] === $toolName) {
+
+        // stdio MCP does not have an HTTP user/IP,
+        // so use one fixed identifier for this prototype.
+        $clientId = 'stdio';
+
+        // Check rate limit before executing the tool.
+        $rateLimitResult = $this->rateLimiter->check(
+          $clientId,
+          $toolName,
+        );
+
+        // If the limit has been exceeded, do not execute the tool.
+        if (!$rateLimitResult['allowed']) {
+          return [
+            'content' => [
+              [
+                'type' => 'text',
+                'text' => $rateLimitResult['message']
+                  . ' Try again in '
+                  . $rateLimitResult['retry_after']
+                  . ' seconds.',
+              ],
+            ],
+            'isError' => true,
+          ];
+        }
+
+        // Only execute the tool if the rate-limit check passed.
         $result = $plugin->execute($arguments);
+
         return [
           'content' => [
-            ['type' => 'text', 'text' => is_string($result) ? $result : json_encode($result, JSON_PRETTY_PRINT)],
+            [
+              'type' => 'text',
+              'text' => is_string($result)
+                ? $result
+                : json_encode($result, JSON_PRETTY_PRINT),
+            ],
           ],
           'isError' => false,
         ];
