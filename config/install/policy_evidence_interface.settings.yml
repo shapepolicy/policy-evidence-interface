@@ -1,2 +1,25 @@
 pdf_file: 'default.pdf'
 pdf_root_path: 'sites/default/files/2026-05'
+
+rate_limit:
+  enabled: true
+
+  global:
+    limit: 5
+    window_seconds: 60
+
+  tools:
+    search_nodes:
+      limit: 2
+
+    get_site_info:
+      limit: 5
+
+    get_node:
+      limit: 5
+
+    list_content_types:
+      limit: 5
+
+    read_node_pdf:
+      limit: 5
