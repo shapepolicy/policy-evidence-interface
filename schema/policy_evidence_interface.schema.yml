@@ -1,11 +1,86 @@
 # Schema for the configuration files of the Policy evidence interface module.
+
 policy_evidence_interface.settings:
   type: config_object
   label: 'Policy evidence interface settings'
+
   mapping:
     pdf_file:
       type: string
-      label: 'pdf file name'
+      label: 'PDF file name'
+
     pdf_root_path:
       type: string
-      label: 'path_to_pdf'
+      label: 'Path to PDF'
+
+    rate_limit:
+      type: mapping
+      label: 'Rate limit settings'
+
+      mapping:
+        enabled:
+          type: boolean
+          label: 'Enable rate limiting'
+
+        global:
+          type: mapping
+          label: 'Global rate limit'
+
+          mapping:
+            limit:
+              type: integer
+              label: 'Global request limit'
+
+            window_seconds:
+              type: integer
+              label: 'Rate limit window in seconds'
+
+        tools:
+          type: mapping
+          label: 'Tool-specific rate limits'
+
+          mapping:
+            search_nodes:
+              type: mapping
+              label: 'Search nodes rate limit'
+
+              mapping:
+                limit:
+                  type: integer
+                  label: 'Search nodes request limit'
+
+            get_site_info:
+              type: mapping
+              label: 'Get site info rate limit'
+
+              mapping:
+                limit:
+                  type: integer
+                  label: 'Get site info request limit'
+
+            get_node:
+              type: mapping
+              label: 'Get node rate limit'
+
+              mapping:
+                limit:
+                  type: integer
+                  label: 'Get node request limit'
+
+            list_content_types:
+              type: mapping
+              label: 'List content types rate limit'
+
+              mapping:
+                limit:
+                  type: integer
+                  label: 'List content types request limit'
+
+            read_node_pdf:
+              type: mapping
+              label: 'Read node PDF rate limit'
+
+              mapping:
+                limit:
+                  type: integer
+                  label: 'Read node PDF request limit'

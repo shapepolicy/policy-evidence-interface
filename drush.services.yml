@@ -4,5 +4,6 @@ services:
     arguments:
       - '@plugin.manager.policy_evidence_interface.tool'
       - '@plugin.manager.policy_evidence_interface.resource'
+      - '@policy_evidence_interface.rate_limiter'
     tags:
       - { name: drush.command }
