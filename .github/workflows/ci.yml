@@ -47,6 +47,12 @@ jobs:
           test -f web/modules/contrib/policy-evidence-interface/policy_evidence_interface.info.yml
           test -d web/modules/contrib/simple_oauth
 
+      - name: Run unit tests
+        run: |
+          cd "$RUNNER_TEMP/drupal"
+          composer require phpunit/phpunit:^9.6 --dev --no-interaction --no-progress
+          vendor/bin/phpunit web/modules/contrib/policy-evidence-interface/tests/src/Unit
+
       - name: Lint PHP files
         run: |
           mapfile -d '' php_files < <(
