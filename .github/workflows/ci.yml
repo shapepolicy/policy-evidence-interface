@@ -5,28 +5,61 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.2"
+          php-version: "8.3"
+          extensions: gd
+          coverage: none
           tools: composer:v2
 
       - name: Validate composer.json
         run: composer validate --strict
 
-      - name: Install dependencies
-        run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Install module in Drupal
+        run: |
+          composer create-project drupal/recommended-project:^10.6 \
+            "$RUNNER_TEMP/drupal" \
+            --no-interaction \
+            --no-progress \
+            --prefer-dist
+
+          cd "$RUNNER_TEMP/drupal"
+          composer config repositories.policy-evidence-interface path "$GITHUB_WORKSPACE"
+          composer require shapepolicy/policy-evidence-interface:@dev \
+            --with-all-dependencies \
+            --no-interaction \
+            --no-progress \
+            --prefer-dist
+
+          test -f web/modules/contrib/policy-evidence-interface/policy_evidence_interface.info.yml
+          test -d web/modules/contrib/simple_oauth
 
       - name: Lint PHP files
         run: |
-          while IFS= read -r -d '' file; do
+          mapfile -d '' php_files < <(
+            find "$GITHUB_WORKSPACE" \
+              -path "$GITHUB_WORKSPACE/.git" -prune -o \
+              -type f -name "*.php" -print0
+          )
+
+          if ((${#php_files[@]} == 0)); then
+            echo "No PHP files found."
+            exit 1
+          fi
+
+          for file in "${php_files[@]}"; do
             php -l "$file"
-          done < <(find . -name "*.php" -print0)
+          done
