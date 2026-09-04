@@ -1,106 +1,76 @@
 # Policy Evidence Interface
 
-Drupal 10/11 module exposing published content through [MCP](https://modelcontextprotocol.io/): HTTP JSON-RPC at `/_mcp` and local Drush stdio (protocol `2024-11-05`). Tools: `get_site_info`, `list_content_types`, `search_nodes`, `get_node`, and `read_node_pdf`. Resources: `drupal://site-info`, `drupal://content-types`, and `drupal://recent-nodes`.
+A Drupal module that exposes published site content to AI clients through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). It supports JSON-RPC over HTTP and newline-delimited JSON-RPC over Drush stdio.
 
-## 1. DDEV and Composer setup
+## Target environment
 
-Install [DDEV and its Docker provider](https://docs.ddev.com/en/stable/users/install/) and Git. On Windows, run these commands inside WSL2, keeping the project in the Linux filesystem.
+- Drupal `10.6.7`
+- PHP `8.3.29`
+- Drush `12.5.3`
+- Composer
 
-For a **new, empty Drupal project only** ([DDEV quickstart](https://docs.ddev.com/en/stable/users/quickstart/#drupal)):
+These versions are compatible: Drush 12 supports Drupal 10 and PHP 8.1 or newer. The module manifest also permits Drupal 11, although the target environment uses Drupal 10.6.7.
 
-```bash
-mkdir drupal && cd drupal
-ddev config --project-type=drupal11 --docroot=web --php-version=8.4
-ddev start
-ddev composer create-project 'drupal/recommended-project:^11'
-ddev composer require 'drush/drush:^13'
-ddev drush site:install standard -y
-ddev drush uli
-```
+## Features
 
-For an existing site, start DDEV from its project root and skip the creation/install commands above: `site:install` replaces the database.
+- Tools for site information, content types, node search, node details, and page-level PDF text extraction.
+- Resources for site information, content types, and the 20 most recently updated nodes.
+- Annotation-based plugin APIs for adding MCP tools and resources.
+- Access control through Drupal's `access mcp server` permission.
 
-From the **Drupal project root**, install this module as a Git-tracked local package:
+PDF extraction supports file fields named `field_pdf_article`, `field_pdf`, or `field_file`. Scanned or font-encoded PDFs may require OCR and are reported as non-extractable.
 
-```bash
-git clone --branch main https://github.com/shapepolicy/policy-evidence-interface.git packages/policy-evidence-interface
-ddev composer config repositories.policy-interface '{"type":"path","url":"packages/policy-evidence-interface","options":{"symlink":true}}'
-ddev composer require 'shapepolicy/policy-evidence-interface:@dev' --with-all-dependencies
-ddev drush en policy_evidence_interface -y
-ddev drush cr
-```
+## Installation
 
-If the package is already cloned, keep that checkout and skip `git clone`. Composer installs Simple OAuth and the PDF parser automatically and links `web/modules/contrib/policy-evidence-interface` to the package. Edit files in `packages/policy-evidence-interface`; do not copy the module or run a separate `composer install` inside it. The `@dev` constraint accommodates the checked-out development branch; it replaces stale branch-specific requirements.
-
-## 2. Local connection — simplest option
-
-Use stdio for Claude Desktop on the same computer. No public URL, OAuth setup, Node.js bridge, or certificate workaround is needed. Keep DDEV running; Claude launches the server automatically.
-
-In Claude Desktop, open **Settings → Developer → Edit Config**. Merge this entry into the existing `mcpServers` object, preserving other settings. Windows + WSL2 example (replace `/home/you/drupal` with your project path):
-
-```json
-{
-  "mcpServers": {
-    "policy-evidence": {
-      "command": "wsl.exe",
-      "args": ["--cd", "/home/you/drupal", "ddev", "exec", "vendor/bin/drush", "mcp:server"]
-    }
-  }
-}
-```
-
-On macOS/Linux, use `"command": "bash"` with `"args": ["-lc", "cd /absolute/path/to/drupal && exec ddev exec vendor/bin/drush mcp:server"]`. Ensure DDEV is available to that shell.
-
-Fully quit and reopen Claude, then ask it to use `get_site_info`. Use the configuration file opened by Claude itself; Microsoft Store installations can use a different location. See [local MCP configuration](https://modelcontextprotocol.io/docs/develop/connect-local-servers).
-
-For other stdio clients, launch `ddev exec vendor/bin/drush mcp:server` with the Drupal project as the working directory. Stdio runs with the local Drupal/Drush process's privileges, not a remote user's OAuth permissions; use it only on trusted development sites.
-
-## 3. Remote connection — HTTPS + OAuth
-
-Claude's hosted connector cannot reach `https://drupal.ddev.site/` directly. Deploy to a reachable HTTPS host, or deliberately expose a development site through a trusted tunnel. The same public origin must serve `/_mcp`, `/.well-known/*`, `/oauth/*`, and the Drupal login pages. Use a valid certificate and configure Drupal's trusted host/reverse-proxy settings for that origin.
-
-The installation above enables the dependencies, but this module does **not** provide an automatic OAuth provisioning command. Configure these once in Drupal's Simple OAuth settings:
-
-1. Generate OAuth keys outside `web/` and configure their paths. Keep keys, passwords, and tokens out of Git; do not regenerate working keys during routine updates.
-2. Create role `mcp_connector` with **Access MCP Server** and **Grant simple_oauth codes** permissions. Assign it to a dedicated non-administrator user.
-3. Create scope `mcp_connector_scope` using role granularity for `mcp_connector`; enable authorization-code and refresh-token grants.
-4. Create an enabled consumer labelled exactly `mcp connector`: public/non-confidential, PKCE required, authorization-code and refresh-token grants enabled, and `mcp_connector_scope` selected as an authorization-code scope. Register these exact hosted-Claude callback URLs:
-
-   ```text
-   https://claude.ai/api/mcp/auth_callback
-   https://claude.com/api/mcp/auth_callback
-   ```
-
-**Current implementation caveat:** discovery and client lookup routes are protected by the same `access mcp server` permission. For an isolated development test, granting **only that permission** to Anonymous lets discovery reach the controller; unauthenticated MCP calls are still rejected there. Never grant administrative permissions. Production deployments need a route/access-control review so discovery is public while tool access remains protected.
-
-In Claude, open **Settings → Connectors → Add custom connector**, enter `https://YOUR-PUBLIC-HOST/_mcp`, leave optional client ID/secret blank, and authorize as the dedicated user. The module's `/oauth/getclientid` automatically returns the preconfigured consumer ID; it is **not full dynamic client registration** and does not register new callback URLs. Other OAuth clients may need their exact callback registered separately. See [Claude connector setup](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp) and [authentication requirements](https://claude.com/docs/connectors/building/authentication).
-
-Before connecting, verify that both `/.well-known/oauth-protected-resource` and `/.well-known/oauth-authorization-server` return JSON without login, and unauthenticated `/_mcp` returns `401` with a `WWW-Authenticate` header. A `403` usually indicates the routing/permission issue above; `invalid_client` warrants checking the consumer label, client ID, and exact redirect URI. Never disable TLS verification to fix a connection.
-
-## 4. Version control and GitHub sync
-
-The package is its own Git repository; Composer's [path repository](https://getcomposer.org/doc/05-repositories.md#path) links it but does not pull or push Git commits. To update a clean checkout from `main`, run from the Drupal root:
+From this module directory, install the PDF parser:
 
 ```bash
-git -C packages/policy-evidence-interface switch main
-git -C packages/policy-evidence-interface pull --ff-only origin main
-ddev composer update shapepolicy/policy-evidence-interface --with-all-dependencies
-ddev drush cr
+composer install
 ```
 
-Commit or stash your work before switching/pulling. Refresh Composer after dependency or branch changes; ordinary source edits appear through the symlink immediately. To publish an intentional README change on `main` (requires GitHub write access and configured HTTPS authentication):
+Enable the module and clear Drupal's cache:
 
 ```bash
-git -C packages/policy-evidence-interface add README.md
-git -C packages/policy-evidence-interface commit -m "docs: update setup and connection guide"
-git -C packages/policy-evidence-interface push origin main
+drush en policy_evidence_interface -y
+drush cr
 ```
 
-Use feature branches and pull requests for normal development or protected branches; never force-push to bypass protection. If you prefer SSH, set the package's `origin` to `git@github.com:shapepolicy/policy-evidence-interface.git` after configuring your GitHub SSH key.
+Grant the **Access MCP Server** permission only to trusted roles.
 
-If the parent Drupal project is also version-controlled, commit its `composer.json`, `composer.lock`, and shareable `.ddev` configuration there. Either ignore this independently cloned package directory in the parent repository or track it as a Git submodule; do not accidentally commit an unmanaged nested repository. A fresh machine must clone/initialize the package **before** `ddev composer install`; a path lock entry does not fetch its Git checkout. Never commit `vendor/`, generated module copies, database dumps, or credentials.
+## Connecting
 
-PDF extraction supports `field_pdf_article`, `field_pdf`, and `field_file`; scanned/non-extractable PDFs require separate OCR.
+The HTTP endpoint is:
+
+```text
+https://example.com/_mcp
+```
+
+For a local stdio MCP client, run Drupal's Drush command from the Drupal project root:
+
+```bash
+vendor/bin/drush mcp:server
+```
+
+For DDEV:
+
+```bash
+ddev exec vendor/bin/drush mcp:server
+```
+
+The server implements MCP protocol version `2024-11-05`.
+
+## Available MCP interfaces
+
+| Type | Name or URI | Purpose |
+| --- | --- | --- |
+| Tool | `get_site_info` | Return site metadata and Drupal version |
+| Tool | `list_content_types` | List configured node bundles |
+| Tool | `search_nodes` | Search published node titles |
+| Tool | `get_node` | Read a published node and its fields |
+| Tool | `read_node_pdf` | Extract one page from an attached PDF |
+| Resource | `drupal://site-info` | Site configuration |
+| Resource | `drupal://content-types` | Configured node bundles |
+| Resource | `drupal://recent-nodes` | 20 most recently updated published nodes |
 
 ## License
 
