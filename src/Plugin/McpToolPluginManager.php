@@ -33,4 +33,12 @@ class McpToolPluginManager extends DefaultPluginManager {
     $this->setCacheBackend($cache_backend, 'policy_evidence_interface_tool_plugins');
   }
 
+  /**
+   * Gets the rate limit configuration for a tool plugin.
+   */
+  public function getRateLimitConfig(string $plugin_id): array {
+    $definition = $this->getDefinition($plugin_id);
+
+    return $definition['rate_limit'] ?? [];
+  }
 }

@@ -11,6 +11,10 @@ use Drupal\policy_evidence_interface\Plugin\McpToolBase;
  *   id = "search_nodes",
  *   tool_name = "search_nodes",
  *   description = "Search published Drupal nodes by title keyword, optionally filtered by content type. Returns node ID, title, type, URL, and creation date."
+ *   rate_limit = {
+ *     "limit" = 10,
+ *     "window" = 60
+ * }
  * )
  */
 class SearchNodes extends McpToolBase {
