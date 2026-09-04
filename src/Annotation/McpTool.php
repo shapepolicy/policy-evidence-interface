@@ -25,5 +25,12 @@ class McpTool extends Plugin {
    * A human-readable description of what the tool does.
    */
   public string $description;
+  
+  /**
+   * Rate limit configuration.
+   *
+   * @var array
+   */
+  public $rate_limit = [];
 
 }
