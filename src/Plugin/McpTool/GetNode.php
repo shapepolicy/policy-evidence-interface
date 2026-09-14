@@ -37,7 +37,7 @@ class GetNode extends McpToolBase {
   public function execute(array $arguments): mixed {
     $nid = (int) ($arguments['nid'] ?? 0);
 
-    if (!$nid) {
+    if ($nid <= 0) {
       return ['error' => 'A valid nid is required.'];
     }
 
