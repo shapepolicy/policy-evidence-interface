@@ -31,10 +31,20 @@ final class GetNodeTest extends TestCase {
     $tool = new GetNode([], 'get_node', []);
     $error = ['error' => 'A valid nid is required.'];
 
-    $this->assertSame($error, $tool->execute([]));
-    $this->assertSame($error, $tool->execute(['nid' => 0]));
-    $this->assertSame($error, $tool->execute(['nid' => -1]));
-    $this->assertSame($error, $tool->execute(['nid' => 'invalid']));
+    $invalid_arguments = [
+      [],
+      ['nid' => 0],
+      ['nid' => -1],
+      ['nid' => '12'],
+      ['nid' => '12abc'],
+      ['nid' => 1.5],
+      ['nid' => TRUE],
+      ['nid' => [1]],
+    ];
+
+    foreach ($invalid_arguments as $arguments) {
+      $this->assertSame($error, $tool->execute($arguments));
+    }
   }
 
 }
