@@ -51,9 +51,7 @@ class SearchNodes extends McpToolBase {
     $content_type = array_key_exists('content_type', $arguments)
       ? $arguments['content_type']
       : NULL;
-    $limit = array_key_exists('limit', $arguments)
-      ? $arguments['limit']
-      : 10;
+    $limit = array_key_exists('limit', $arguments) ? $arguments['limit'] : 10;
 
     if (!is_string($keyword) || $keyword === '') {
       return ['error' => 'A valid keyword is required.'];

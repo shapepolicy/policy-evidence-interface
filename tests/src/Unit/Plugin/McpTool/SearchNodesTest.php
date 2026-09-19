@@ -18,15 +18,16 @@ final class SearchNodesTest extends TestCase {
   public function testInputSchema(): void {
     $tool = new SearchNodes([], 'search_nodes', []);
     $schema = $tool->getToolDefinition()['inputSchema'];
+    $properties = $schema['properties'];
 
     $this->assertSame('object', $schema['type']);
-    $this->assertSame('string', $schema['properties']['keyword']['type']);
-    $this->assertSame(1, $schema['properties']['keyword']['minLength']);
-    $this->assertSame('string', $schema['properties']['content_type']['type']);
-    $this->assertSame('integer', $schema['properties']['limit']['type']);
-    $this->assertSame(1, $schema['properties']['limit']['minimum']);
-    $this->assertSame(50, $schema['properties']['limit']['maximum']);
-    $this->assertSame(10, $schema['properties']['limit']['default']);
+    $this->assertSame('string', $properties['keyword']['type']);
+    $this->assertSame(1, $properties['keyword']['minLength']);
+    $this->assertSame('string', $properties['content_type']['type']);
+    $this->assertSame('integer', $properties['limit']['type']);
+    $this->assertSame(1, $properties['limit']['minimum']);
+    $this->assertSame(50, $properties['limit']['maximum']);
+    $this->assertSame(10, $properties['limit']['default']);
     $this->assertSame(['keyword'], $schema['required']);
   }
 
