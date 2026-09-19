@@ -202,7 +202,7 @@ class McpServerCommands extends DrushCommands {
                 : json_encode($result, JSON_PRETTY_PRINT),
             ],
           ],
-          'isError' => false,
+          'isError' => is_array($result) && array_key_exists('error', $result),
         ];
       }
     }
