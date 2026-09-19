@@ -35,10 +35,12 @@ class ReadNodePdf extends McpToolBase {
       'properties' => [
         'nid' => [
           'type'        => 'integer',
+          'minimum'     => 1,
           'description' => 'The numeric node ID (nid) of the node whose PDF attachment should be parsed.',
         ],
         'page_start' => [
           'type'        => 'integer',
+          'minimum'     => 1,
           'description' => 'First page to extract (1-based index). Defaults to 1.',
           'default'     => 1,
         ],
@@ -51,11 +53,17 @@ class ReadNodePdf extends McpToolBase {
    * {@inheritdoc}
    */
   public function execute(array $arguments): mixed {
-    $nid = (int) ($arguments['nid'] ?? 0);
-    $page_start = (int) ($arguments['page_start'] ?? 1);
+    $nid = $arguments['nid'] ?? NULL;
+    $page_start = array_key_exists('page_start', $arguments)
+      ? $arguments['page_start']
+      : 1;
 
-    if (!$nid) {
+    if (!is_int($nid) || $nid <= 0) {
       return ['error' => 'A valid nid is required.'];
+    }
+
+    if (!is_int($page_start) || $page_start <= 0) {
+      return ['error' => 'A valid page_start is required.'];
     }
 
     // Load the node.
