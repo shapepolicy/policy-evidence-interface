@@ -61,6 +61,10 @@ class SearchNodes extends McpToolBase {
       return ['error' => 'content_type must be a string.'];
     }
 
+    if (is_float($limit) && is_finite($limit) && floor($limit) === $limit) {
+      $limit = (int) $limit;
+    }
+
     if (!is_int($limit) || $limit < 1 || $limit > 50) {
       return ['error' => 'limit must be an integer between 1 and 50.'];
     }
