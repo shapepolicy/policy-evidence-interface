@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\Tests\policy_evidence_interface\Unit\Service;
 
 use Drupal\Component\Datetime\TimeInterface;
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\policy_evidence_interface\Service\McpRateLimiter;
 use PHPUnit\Framework\TestCase;
@@ -23,7 +24,7 @@ final class McpRateLimiterTest extends TestCase {
 
     $cache = $this->createMock(CacheBackendInterface::class);
     $cache->method('get')->willReturnCallback(
-      static function (string $key) use (&$cache_items): object|false {
+      static function (string $key, bool $allow_invalid = FALSE) use (&$cache_items): object|false {
         if (!array_key_exists($key, $cache_items)) {
           return FALSE;
         }
@@ -32,7 +33,12 @@ final class McpRateLimiterTest extends TestCase {
       },
     );
     $cache->method('set')->willReturnCallback(
-      static function (string $key, mixed $data) use (&$cache_items): void {
+      static function (
+        string $key,
+        mixed $data,
+        int $expire = Cache::PERMANENT,
+        array $tags = [],
+      ) use (&$cache_items): void {
         $cache_items[$key] = $data;
       },
     );
