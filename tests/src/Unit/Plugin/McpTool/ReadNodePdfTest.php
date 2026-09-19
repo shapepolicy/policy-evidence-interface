@@ -33,19 +33,10 @@ final class ReadNodePdfTest extends TestCase {
     $tool = new ReadNodePdf([], 'read_node_pdf', []);
     $error = ['error' => 'A valid nid is required.'];
 
-    $invalid_arguments = [
-      [],
-      ['nid' => 0],
-      ['nid' => -1],
-      ['nid' => '12'],
-      ['nid' => '12abc'],
-      ['nid' => 1.5],
-      ['nid' => TRUE],
-      ['nid' => [1]],
-    ];
+    $this->assertSame($error, $tool->execute([]));
 
-    foreach ($invalid_arguments as $arguments) {
-      $this->assertSame($error, $tool->execute($arguments));
+    foreach ([0, -1, '12', '12abc', 1.5, TRUE, [1]] as $nid) {
+      $this->assertSame($error, $tool->execute(['nid' => $nid]));
     }
   }
 
@@ -56,17 +47,8 @@ final class ReadNodePdfTest extends TestCase {
     $tool = new ReadNodePdf([], 'read_node_pdf', []);
     $error = ['error' => 'A valid page_start is required.'];
 
-    $invalid_arguments = [
-      ['nid' => 1, 'page_start' => 0],
-      ['nid' => 1, 'page_start' => -1],
-      ['nid' => 1, 'page_start' => NULL],
-      ['nid' => 1, 'page_start' => '1'],
-      ['nid' => 1, 'page_start' => 1.5],
-      ['nid' => 1, 'page_start' => TRUE],
-      ['nid' => 1, 'page_start' => [1]],
-    ];
-
-    foreach ($invalid_arguments as $arguments) {
+    foreach ([0, -1, NULL, '1', 1.5, TRUE, [1]] as $page_start) {
+      $arguments = ['nid' => 1, 'page_start' => $page_start];
       $this->assertSame($error, $tool->execute($arguments));
     }
   }
