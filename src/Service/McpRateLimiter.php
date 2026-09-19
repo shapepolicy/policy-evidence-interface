@@ -34,6 +34,7 @@ final class McpRateLimiter {
    * Checks whether this caller can call this tool.
    */
   public function check(string $clientId, string $toolName): array {
+    $now = $this->time->getCurrentTime();
     $clientHash = hash('sha256', $clientId);
 
     // The calculator
@@ -42,14 +43,14 @@ final class McpRateLimiter {
     // Calculator for every tool
     $toolKey = 'mcp_rate:tool:' . $toolName . ':' . $clientHash;
 
-    $globalCounter = $this->getCounter($globalKey);
+    $globalCounter = $this->getCounter($globalKey, $now);
 
     // check the global limit 
     if ($globalCounter['count'] >= self::GLOBAL_LIMIT) {
       return [
         'allowed' => FALSE,
         'message' => 'Global MCP rate limit exceeded.',
-        'retry_after' => max(0, $globalCounter['expires'] - $this->time->getCurrentTime()),
+        'retry_after' => max(0, $globalCounter['expires'] - $now),
       ];
     }
 
@@ -58,7 +59,7 @@ final class McpRateLimiter {
       ? self::SEARCH_NODES_LIMIT
       : self::GLOBAL_LIMIT;
 
-    $toolCounter = $this->getCounter($toolKey);
+    $toolCounter = $this->getCounter($toolKey, $now);
 
     // check the tool limit
     if ($toolCounter['count'] >= $toolLimit) {
@@ -68,7 +69,7 @@ final class McpRateLimiter {
           'Rate limit exceeded for tool "%s".',
           $toolName,
         ),
-        'retry_after' => max(0, $toolCounter['expires'] - $this->time->getCurrentTime()),
+        'retry_after' => max(0, $toolCounter['expires'] - $now),
       ];
     }
 
@@ -89,8 +90,7 @@ final class McpRateLimiter {
   /**
    * Reads a counter or creates a new one.
    */
-  private function getCounter(string $key): array {
-    $now = $this->time->getCurrentTime();
+  private function getCounter(string $key, int $now): array {
     $cached = $this->cache->get($key);
 
 

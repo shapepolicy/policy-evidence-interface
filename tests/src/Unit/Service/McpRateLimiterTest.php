@@ -61,9 +61,23 @@ final class McpRateLimiterTest extends TestCase {
     $this->assertFalse($limited['allowed']);
     $this->assertSame(60, $limited['retry_after']);
 
-    $current_time = 1061;
+    $current_time = 1060;
 
     $this->assertTrue($limiter->check('stdio', 'get_node')['allowed']);
+
+    $current_time = 2000;
+
+    $this->assertTrue($limiter->check('search-client', 'search_nodes')['allowed']);
+    $this->assertTrue($limiter->check('search-client', 'search_nodes')['allowed']);
+
+    $limited = $limiter->check('search-client', 'search_nodes');
+    $this->assertFalse($limited['allowed']);
+    $this->assertSame('Rate limit exceeded for tool "search_nodes".', $limited['message']);
+    $this->assertSame(60, $limited['retry_after']);
+
+    $current_time = 2060;
+
+    $this->assertTrue($limiter->check('search-client', 'search_nodes')['allowed']);
   }
 
 }
