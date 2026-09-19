@@ -35,10 +35,12 @@ class ReadNodePdf extends McpToolBase {
       'properties' => [
         'nid' => [
           'type'        => 'integer',
+          'minimum'     => 1,
           'description' => 'The numeric node ID (nid) of the node whose PDF attachment should be parsed.',
         ],
         'page_start' => [
           'type'        => 'integer',
+          'minimum'     => 1,
           'description' => 'First page to extract (1-based index). Defaults to 1.',
           'default'     => 1,
         ],

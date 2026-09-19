@@ -21,7 +21,9 @@ final class ReadNodePdfTest extends TestCase {
 
     $this->assertSame('object', $schema['type']);
     $this->assertSame('integer', $schema['properties']['nid']['type']);
+    $this->assertSame(1, $schema['properties']['nid']['minimum']);
     $this->assertSame('integer', $schema['properties']['page_start']['type']);
+    $this->assertSame(1, $schema['properties']['page_start']['minimum']);
     $this->assertSame(1, $schema['properties']['page_start']['default']);
     $this->assertSame(['nid'], $schema['required']);
   }
