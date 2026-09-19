@@ -52,7 +52,9 @@ class ReadNodePdf extends McpToolBase {
    */
   public function execute(array $arguments): mixed {
     $nid = $arguments['nid'] ?? NULL;
-    $page_start = $arguments['page_start'] ?? 1;
+    $page_start = array_key_exists('page_start', $arguments)
+      ? $arguments['page_start']
+      : 1;
 
     if (!is_int($nid) || $nid <= 0) {
       return ['error' => 'A valid nid is required.'];

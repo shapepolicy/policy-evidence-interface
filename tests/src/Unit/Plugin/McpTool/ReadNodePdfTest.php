@@ -59,6 +59,7 @@ final class ReadNodePdfTest extends TestCase {
     $invalid_arguments = [
       ['nid' => 1, 'page_start' => 0],
       ['nid' => 1, 'page_start' => -1],
+      ['nid' => 1, 'page_start' => NULL],
       ['nid' => 1, 'page_start' => '1'],
       ['nid' => 1, 'page_start' => 1.5],
       ['nid' => 1, 'page_start' => TRUE],
