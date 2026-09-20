@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\Tests\policy_evidence_interface\Unit\Plugin\McpTool;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\Core\Entity\EntityDescriptionInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\policy_evidence_interface\Plugin\McpTool\ListContentTypes;
@@ -32,30 +33,11 @@ final class ListContentTypesTest extends TestCase {
    * Tests configured content types are returned.
    */
   public function testExecuteReturnsContentTypes(): void {
-    $node_type = new class() {
-
-      /**
-       * Returns the content type ID.
-       */
-      public function id(): string {
-        return 'policy_evidence';
-      }
-
-      /**
-       * Returns the content type label.
-       */
-      public function label(): string {
-        return 'Policy evidence';
-      }
-
-      /**
-       * Returns the content type description.
-       */
-      public function getDescription(): string {
-        return 'Evidence used to support policy decisions.';
-      }
-
-    };
+    $node_type = $this->createConfiguredMock(EntityDescriptionInterface::class, [
+      'id' => 'policy_evidence',
+      'label' => 'Policy evidence',
+      'getDescription' => 'Evidence used to support policy decisions.',
+    ]);
 
     $this->assertSame([
       'content_types' => [
