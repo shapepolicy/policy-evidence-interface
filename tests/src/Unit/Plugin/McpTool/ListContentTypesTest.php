@@ -71,6 +71,7 @@ final class ListContentTypesTest extends TestCase {
 
     $container = new ContainerBuilder();
     $container->set('entity_type.manager', $entity_type_manager);
+    $original_container = \Drupal::hasContainer() ? \Drupal::getContainer() : NULL;
     \Drupal::setContainer($container);
 
     try {
@@ -78,7 +79,12 @@ final class ListContentTypesTest extends TestCase {
       return $tool->execute([]);
     }
     finally {
-      \Drupal::unsetContainer();
+      if ($original_container) {
+        \Drupal::setContainer($original_container);
+      }
+      else {
+        \Drupal::unsetContainer();
+      }
     }
   }
 
