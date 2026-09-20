@@ -77,8 +77,7 @@ final class GetSiteInfoTest extends TestCase {
       ->with('system.site')
       ->willReturn($config);
 
-    $request_stack = new RequestStack();
-    $request_stack->push(Request::create($url));
+    $request_stack = new RequestStack([Request::create($url)]);
 
     $container = new ContainerBuilder();
     $container->set('config.factory', $config_factory);
