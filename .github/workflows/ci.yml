@@ -55,7 +55,7 @@ jobs:
 
       - name: Run kernel tests
         env:
-          SIMPLETEST_DB: sqlite://localhost/:memory:
+          SIMPLETEST_DB: "sqlite://localhost/:memory:"
         run: |
           cd "$RUNNER_TEMP/drupal"
           vendor/bin/phpunit -c web/core/phpunit.xml.dist web/modules/contrib/policy-evidence-interface/tests/src/Kernel
