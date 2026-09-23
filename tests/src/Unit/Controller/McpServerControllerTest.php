@@ -14,10 +14,11 @@ use Drupal\policy_evidence_interface\Plugin\McpToolPluginManager;
 use Drupal\policy_evidence_interface\Service\McpRateLimiter;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Tests basic HTTP responses from the MCP server controller.
+ * Tests MCP server controller responses without Drupal routing.
  */
 final class McpServerControllerTest extends TestCase {
 
@@ -65,14 +66,48 @@ final class McpServerControllerTest extends TestCase {
   }
 
   /**
-   * Sends a POST as a user with the MCP connector role.
+   * Tests anonymous requests are rejected with a bearer challenge.
    */
-  private function handlePost(string $body): Response {
+  public function testAnonymousPostIsUnauthorized(): void {
+    $this->assertUnauthorizedResponse($this->handlePost(
+      '{"jsonrpc":"2.0","id":7,"method":"initialize"}',
+      new UserSession(),
+    ));
+  }
+
+  /**
+   * Tests authenticated users without the connector role are rejected.
+   */
+  public function testPostWithoutConnectorRoleIsUnauthorized(): void {
+    $this->assertUnauthorizedResponse($this->handlePost(
+      '{"jsonrpc":"2.0","id":7,"method":"initialize"}',
+      new UserSession(['uid' => 1, 'roles' => ['authenticated']]),
+    ));
+  }
+
+  /**
+   * Checks the access-denied response and resource-metadata challenge.
+   */
+  private function assertUnauthorizedResponse(Response $response): void {
+    $this->assertSame(401, $response->getStatusCode());
+    $this->assertSame('Bearer resource_metadata="https://example.test/.well-known/oauth-protected-resource"', $response->headers->get('WWW-Authenticate'));
+    $this->assertSame('unauthorized', json_decode($response->getContent(), TRUE, 512, JSON_THROW_ON_ERROR)['error']);
+  }
+
+  /**
+   * Sends an HTTP request as the supplied user or an MCP connector.
+   */
+  private function handlePost(string $body, ?UserSession $account = NULL): Response {
+    $request = Request::create('https://example.test/_mcp', 'POST', [], [], [], [], $body);
+    $request_stack = new RequestStack();
+    $request_stack->push($request);
+
     $container = new ContainerBuilder();
-    $container->set('current_user', new UserSession([
+    $container->set('current_user', $account ?? new UserSession([
       'uid' => 1,
       'roles' => ['authenticated', 'mcp_connector'],
     ]));
+    $container->set('request_stack', $request_stack);
     $original_container = \Drupal::hasContainer() ? \Drupal::getContainer() : NULL;
     \Drupal::setContainer($container);
 
@@ -85,7 +120,7 @@ final class McpServerControllerTest extends TestCase {
           $this->createMock(TimeInterface::class),
         ),
       );
-      return $controller->handle(Request::create('https://example.test/_mcp', 'POST', [], [], [], [], $body));
+      return $controller->handle($request);
     }
     finally {
       if ($original_container) {
