@@ -58,7 +58,7 @@ jobs:
           SIMPLETEST_DB: "sqlite://localhost/:memory:"
         run: |
           cd "$RUNNER_TEMP/drupal"
-          vendor/bin/phpunit -c "$RUNNER_TEMP/drupal/web/core/phpunit.xml.dist" web/modules/contrib/policy-evidence-interface/tests/src/Kernel
+          vendor/bin/phpunit -c web/core/phpunit.xml.dist web/modules/contrib/policy-evidence-interface/tests/src/Kernel
 
       - name: Lint PHP files
         run: |
