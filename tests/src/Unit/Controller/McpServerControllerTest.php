@@ -7,7 +7,7 @@ namespace Drupal\Tests\policy_evidence_interface\Unit\Controller;
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
-use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Session\UserSession;
 use Drupal\policy_evidence_interface\Controller\McpServerController;
 use Drupal\policy_evidence_interface\Plugin\McpResourcePluginManager;
 use Drupal\policy_evidence_interface\Plugin\McpToolPluginManager;
@@ -68,12 +68,11 @@ final class McpServerControllerTest extends TestCase {
    * Sends a POST as a user with the MCP connector role.
    */
   private function handlePost(string $body): Response {
-    $account = $this->createMock(AccountInterface::class);
-    $account->method('isAnonymous')->willReturn(FALSE);
-    $account->method('getRoles')->willReturn(['authenticated', 'mcp_connector']);
-
     $container = new ContainerBuilder();
-    $container->set('current_user', $account);
+    $container->set('current_user', new UserSession([
+      'uid' => 1,
+      'roles' => ['authenticated', 'mcp_connector'],
+    ]));
     $original_container = \Drupal::hasContainer() ? \Drupal::getContainer() : NULL;
     \Drupal::setContainer($container);
 
