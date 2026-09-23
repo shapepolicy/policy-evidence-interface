@@ -20,3 +20,8 @@ services:
     arguments:
       - '@cache.default'
       - '@datetime.time'
+
+  policy_evidence_interface.preflight_subscriber:
+    class: Drupal\policy_evidence_interface\EventSubscriber\McpPreflightSubscriber
+    tags:
+      - { name: event_subscriber }
