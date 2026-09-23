@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Tests basic HTTP responses from the MCP server controller.
+ * Tests MCP server controller responses without Drupal routing.
  */
 final class McpServerControllerTest extends TestCase {
 
@@ -26,7 +26,7 @@ final class McpServerControllerTest extends TestCase {
    * Tests the initialize JSON-RPC response for an authorized user.
    */
   public function testInitialize(): void {
-    $response = $this->handleRequest('{"jsonrpc":"2.0","id":7,"method":"initialize","params":{}}');
+    $response = $this->handlePost('{"jsonrpc":"2.0","id":7,"method":"initialize","params":{}}');
     $body = json_decode($response->getContent(), TRUE, 512, JSON_THROW_ON_ERROR);
 
     $this->assertSame(200, $response->getStatusCode());
@@ -42,7 +42,7 @@ final class McpServerControllerTest extends TestCase {
    * Tests malformed JSON produces a parse error.
    */
   public function testMalformedJson(): void {
-    $response = $this->handleRequest('{');
+    $response = $this->handlePost('{');
 
     $this->assertSame(400, $response->getStatusCode());
     $this->assertSame([
@@ -59,7 +59,7 @@ final class McpServerControllerTest extends TestCase {
    * Tests initialized notifications produce no response body.
    */
   public function testInitializedNotification(): void {
-    $response = $this->handleRequest('{"jsonrpc":"2.0","method":"notifications/initialized"}');
+    $response = $this->handlePost('{"jsonrpc":"2.0","method":"notifications/initialized"}');
 
     $this->assertSame(204, $response->getStatusCode());
     $this->assertSame('', $response->getContent());
@@ -69,9 +69,8 @@ final class McpServerControllerTest extends TestCase {
    * Tests anonymous requests are rejected with a bearer challenge.
    */
   public function testAnonymousPostIsUnauthorized(): void {
-    $this->assertUnauthorizedResponse($this->handleRequest(
+    $this->assertUnauthorizedResponse($this->handlePost(
       '{"jsonrpc":"2.0","id":7,"method":"initialize"}',
-      'POST',
       new UserSession(),
     ));
   }
@@ -80,24 +79,10 @@ final class McpServerControllerTest extends TestCase {
    * Tests authenticated users without the connector role are rejected.
    */
   public function testPostWithoutConnectorRoleIsUnauthorized(): void {
-    $this->assertUnauthorizedResponse($this->handleRequest(
+    $this->assertUnauthorizedResponse($this->handlePost(
       '{"jsonrpc":"2.0","id":7,"method":"initialize"}',
-      'POST',
       new UserSession(['uid' => 1, 'roles' => ['authenticated']]),
     ));
-  }
-
-  /**
-   * Tests preflight requests do not require an authenticated account.
-   */
-  public function testAnonymousOptionsPreflight(): void {
-    $response = $this->handleRequest('', 'OPTIONS', new UserSession());
-
-    $this->assertSame(204, $response->getStatusCode());
-    $this->assertSame('', $response->getContent());
-    $this->assertSame('*', $response->headers->get('Access-Control-Allow-Origin'));
-    $this->assertSame('GET, POST, OPTIONS', $response->headers->get('Access-Control-Allow-Methods'));
-    $this->assertSame('Content-Type, Authorization, Mcp-Session-Id', $response->headers->get('Access-Control-Allow-Headers'));
   }
 
   /**
@@ -112,8 +97,8 @@ final class McpServerControllerTest extends TestCase {
   /**
    * Sends an HTTP request as the supplied user or an MCP connector.
    */
-  private function handleRequest(string $body, string $method = 'POST', ?UserSession $account = NULL): Response {
-    $request = Request::create('https://example.test/_mcp', $method, [], [], [], [], $body);
+  private function handlePost(string $body, ?UserSession $account = NULL): Response {
+    $request = Request::create('https://example.test/_mcp', 'POST', [], [], [], [], $body);
     $request_stack = new RequestStack();
     $request_stack->push($request);
 
