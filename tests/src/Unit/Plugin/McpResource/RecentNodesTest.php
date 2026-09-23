@@ -95,8 +95,7 @@ final class RecentNodesTest extends TestCase {
     \Drupal::setContainer($container);
 
     try {
-      $resource = new RecentNodes([], 'recent_nodes', []);
-      return $resource->read();
+      return (new RecentNodes([], 'recent_nodes', []))->read();
     }
     finally {
       if ($original_container) {
