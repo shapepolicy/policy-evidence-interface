@@ -45,11 +45,9 @@ final class ContentTypesTest extends TestCase {
    * Tests the resource when no content types exist.
    */
   public function testReadReturnsEmptyList(): void {
-    $result = $this->readResource([]);
-
     $this->assertSame(
       ['content_types' => []],
-      json_decode($result['text'], TRUE, 512, JSON_THROW_ON_ERROR),
+      json_decode($this->readResource([])['text'], TRUE, 512, JSON_THROW_ON_ERROR),
     );
   }
 
