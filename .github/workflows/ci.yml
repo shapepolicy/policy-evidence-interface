@@ -50,7 +50,7 @@ jobs:
       - name: Run unit tests
         run: |
           cd "$RUNNER_TEMP/drupal"
-          composer require phpunit/phpunit:^9.6 --dev --no-interaction --no-progress
+          composer require drupal/core-dev:^10.6 --dev --with-all-dependencies --no-interaction --no-progress
           vendor/bin/phpunit web/modules/contrib/policy-evidence-interface/tests/src/Unit
 
       - name: Run kernel tests
