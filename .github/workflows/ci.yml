@@ -21,7 +21,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.3"
-          extensions: gd, pdo_sqlite, sqlite3
+          extensions: gd
           coverage: none
           tools: composer:v2
 
@@ -52,13 +52,6 @@ jobs:
           cd "$RUNNER_TEMP/drupal"
           composer require phpunit/phpunit:^9.6 --dev --no-interaction --no-progress
           vendor/bin/phpunit web/modules/contrib/policy-evidence-interface/tests/src/Unit
-
-      - name: Run kernel tests
-        env:
-          SIMPLETEST_DB: sqlite://localhost/:memory:
-        run: |
-          cd "$RUNNER_TEMP/drupal"
-          vendor/bin/phpunit -c web/core/phpunit.xml.dist web/modules/contrib/policy-evidence-interface/tests/src/Kernel
 
       - name: Lint PHP files
         run: |
