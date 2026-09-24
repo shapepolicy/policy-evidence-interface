@@ -10,8 +10,12 @@ permissions:
 
 jobs:
   validate:
+    name: Drupal ${{ matrix.drupal }} / PHP 8.3
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      matrix:
+        drupal: ['^10.6', '^11']
 
     steps:
       - name: Checkout
@@ -30,7 +34,7 @@ jobs:
 
       - name: Install module in Drupal
         run: |
-          composer create-project drupal/recommended-project:^10.6 \
+          composer create-project "drupal/recommended-project:${{ matrix.drupal }}" \
             "$RUNNER_TEMP/drupal" \
             --no-interaction \
             --no-progress \
@@ -50,7 +54,7 @@ jobs:
       - name: Run unit tests
         run: |
           cd "$RUNNER_TEMP/drupal"
-          composer require phpunit/phpunit:^9.6 --dev --no-interaction --no-progress
+          composer require "drupal/core-dev:${{ matrix.drupal }}" --dev --with-all-dependencies --no-interaction --no-progress
           vendor/bin/phpunit web/modules/contrib/policy-evidence-interface/tests/src/Unit
 
       - name: Lint PHP files
