@@ -2,6 +2,7 @@
 
 namespace Drupal\policy_evidence_interface\EventSubscriber;
 
+use Drupal\Core\Path\CurrentPathStack;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -11,12 +12,14 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 final class McpPreflightResponseSubscriber implements EventSubscriberInterface {
 
+  public function __construct(private readonly CurrentPathStack $currentPath) {}
+
   /**
    * Adds the controller's CORS headers to a successful MCP preflight response.
    */
   public function onResponse(ResponseEvent $event): void {
     $request = $event->getRequest();
-    if (!$event->isMainRequest() || !$request->isMethod('OPTIONS') || $request->getPathInfo() !== '/_mcp' || !$request->headers->has('Origin') || !$request->headers->has('Access-Control-Request-Method') || !$event->getResponse()->isSuccessful()) {
+    if (!$event->isMainRequest() || !$request->isMethod('OPTIONS') || $this->currentPath->getPath($request) !== '/_mcp' || !$request->headers->has('Origin') || !$request->headers->has('Access-Control-Request-Method') || !$event->getResponse()->isSuccessful()) {
       return;
     }
 

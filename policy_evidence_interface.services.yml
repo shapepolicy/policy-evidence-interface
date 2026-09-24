@@ -23,5 +23,6 @@ services:
 
   policy_evidence_interface.preflight_response_subscriber:
     class: Drupal\policy_evidence_interface\EventSubscriber\McpPreflightResponseSubscriber
+    arguments: ['@path.current']
     tags:
       - { name: event_subscriber }
