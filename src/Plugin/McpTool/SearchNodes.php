@@ -24,7 +24,6 @@ class SearchNodes extends McpToolBase {
       'properties' => [
         'keyword' => [
           'type'        => 'string',
-          'minLength'   => 1,
           'description' => 'Keyword to search in node titles.',
         ],
         'content_type' => [
@@ -33,8 +32,6 @@ class SearchNodes extends McpToolBase {
         ],
         'limit' => [
           'type'        => 'integer',
-          'minimum'     => 1,
-          'maximum'     => 50,
           'description' => 'Maximum number of results to return (default 10, max 50).',
           'default'     => 10,
         ],
@@ -47,27 +44,9 @@ class SearchNodes extends McpToolBase {
    * {@inheritdoc}
    */
   public function execute(array $arguments): mixed {
-    $keyword = $arguments['keyword'] ?? NULL;
-    $content_type = array_key_exists('content_type', $arguments)
-      ? $arguments['content_type']
-      : NULL;
-    $limit = array_key_exists('limit', $arguments) ? $arguments['limit'] : 10;
-
-    if (!is_string($keyword) || $keyword === '') {
-      return ['error' => 'A valid keyword is required.'];
-    }
-
-    if (array_key_exists('content_type', $arguments) && !is_string($content_type)) {
-      return ['error' => 'content_type must be a string.'];
-    }
-
-    if (is_float($limit) && is_finite($limit) && floor($limit) === $limit) {
-      $limit = (int) $limit;
-    }
-
-    if (!is_int($limit) || $limit < 1 || $limit > 50) {
-      return ['error' => 'limit must be an integer between 1 and 50.'];
-    }
+    $keyword      = $arguments['keyword'] ?? '';
+    $content_type = $arguments['content_type'] ?? NULL;
+    $limit        = min((int) ($arguments['limit'] ?? 10), 50);
 
     /** @var \Drupal\Core\Entity\EntityTypeManagerInterface $etm */
     $etm     = \Drupal::entityTypeManager();
@@ -80,7 +59,7 @@ class SearchNodes extends McpToolBase {
       ->sort('created', 'DESC')
       ->range(0, $limit);
 
-    if ($content_type !== NULL && $content_type !== '') {
+    if ($content_type) {
       $query->condition('type', $content_type);
     }
 

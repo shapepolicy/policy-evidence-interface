@@ -6,10 +6,5 @@
     "require": {
         "drupal/simple_oauth": "^6.1",
         "smalot/pdfparser": "^2.12"
-    },
-    "autoload": {
-        "psr-4": {
-            "Drupal\\policy_evidence_interface\\": "src/"
-        }
     }
 }

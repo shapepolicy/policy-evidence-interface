@@ -374,7 +374,7 @@ class McpServerController extends ControllerBase {
           'content' => [
             ['type' => 'text', 'text' => is_string($result) ? $result : json_encode($result, JSON_PRETTY_PRINT)],
           ],
-          'isError' => is_array($result) && array_key_exists('error', $result),
+          'isError' => FALSE,
         ];
       }
     }
