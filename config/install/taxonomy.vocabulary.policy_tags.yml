@@ -1,0 +1,8 @@
+langcode: en
+status: true
+dependencies: {  }
+name: 'Policy Tags'
+vid: policy_tags
+description: 'Tags used to classify policy documents.'
+weight: 0
+new_revision: false
