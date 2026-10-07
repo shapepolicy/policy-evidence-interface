@@ -1,0 +1,30 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_policy_tags
+    - node.type.page
+    - taxonomy.vocabulary.policy_tags
+  module:
+    - taxonomy
+id: node.page.field_policy_tags
+field_name: field_policy_tags
+entity_type: node
+bundle: page
+label: 'Policy Tags'
+description: 'Tags used to classify policy documents.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      policy_tags: policy_tags
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

@@ -1,0 +1,121 @@
+<?php
+
+use Drupal\Core\Entity\Entity\EntityFormDisplay;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\taxonomy\Entity\Vocabulary;
+
+/**
+ * Implements hook_install().
+ */
+function policy_evidence_interface_install() {
+  // Make the Policy Tags field available on the Basic page edit form.
+  $form_display = EntityFormDisplay::load('node.page.default');
+
+  if (!$form_display) {
+    $form_display = EntityFormDisplay::create([
+      'targetEntityType' => 'node',
+      'bundle' => 'page',
+      'mode' => 'default',
+      'status' => TRUE,
+    ]);
+  }
+
+  $form_display->setComponent('field_policy_tags', [
+    'type' => 'entity_reference_autocomplete_tags',
+    'weight' => 20,
+    'region' => 'content',
+    'settings' => [
+      'match_operator' => 'CONTAINS',
+      'match_limit' => 10,
+      'size' => 60,
+      'placeholder' => '',
+    ],
+    'third_party_settings' => [],
+  ]);
+
+  $form_display->save();
+}
+
+/**
+ * Creates the Policy Tags vocabulary and field for existing installations.
+ */
+function policy_evidence_interface_update_10001(&$sandbox) {
+  // Create the Policy Tags vocabulary if it does not already exist.
+  if (!Vocabulary::load('policy_tags')) {
+    Vocabulary::create([
+      'vid' => 'policy_tags',
+      'name' => 'Policy Tags',
+      'description' => 'Tags used to classify policy documents.',
+    ])->save();
+  }
+
+  // Create the reusable node field storage.
+  if (!FieldStorageConfig::loadByName('node', 'field_policy_tags')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_policy_tags',
+      'entity_type' => 'node',
+      'type' => 'entity_reference',
+      'settings' => [
+        'target_type' => 'taxonomy_term',
+      ],
+      'cardinality' => -1,
+      'translatable' => TRUE,
+    ])->save();
+  }
+
+  // Attach the field to Basic page.
+  if (!FieldConfig::loadByName('node', 'page', 'field_policy_tags')) {
+    FieldConfig::create([
+      'field_name' => 'field_policy_tags',
+      'entity_type' => 'node',
+      'bundle' => 'page',
+      'label' => 'Policy Tags',
+      'description' => 'Tags used to classify policy documents.',
+      'required' => FALSE,
+      'translatable' => TRUE,
+      'settings' => [
+        'handler' => 'default:taxonomy_term',
+        'handler_settings' => [
+          'target_bundles' => [
+            'policy_tags' => 'policy_tags',
+          ],
+          'sort' => [
+            'field' => 'name',
+            'direction' => 'ASC',
+          ],
+          'auto_create' => FALSE,
+        ],
+      ],
+    ])->save();
+  }
+
+  // Make the Policy Tags field available on the Basic page edit form.
+  $form_display = EntityFormDisplay::load('node.page.default');
+
+  if (!$form_display) {
+    $form_display = EntityFormDisplay::create([
+      'targetEntityType' => 'node',
+      'bundle' => 'page',
+      'mode' => 'default',
+      'status' => TRUE,
+    ]);
+  }
+
+  $form_display->setComponent('field_policy_tags', [
+    'type' => 'entity_reference_autocomplete_tags',
+    'weight' => 20,
+    'region' => 'content',
+    'settings' => [
+      'match_operator' => 'CONTAINS',
+      'match_limit' => 10,
+      'size' => 60,
+      'placeholder' => '',
+    ],
+    'third_party_settings' => [],
+  ]);
+
+  $form_display->save();
+
+  return t('Policy Tags vocabulary and field configuration have been created.');
+}

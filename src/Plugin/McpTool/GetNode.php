@@ -68,10 +68,19 @@ class GetNode extends McpToolBase {
       }
     }
 
+    // Extract policy tag names from the taxonomy reference field.
+    $tags = [];
+    if ($node->hasField('field_policy_tags') && !$node->get('field_policy_tags')->isEmpty()) {
+      foreach ($node->get('field_policy_tags')->referencedEntities() as $term) {
+        $tags[] = $term->label();
+      }
+    }
+
     return [
       'nid'     => (int) $node->id(),
       'title'   => $node->label(),
       'type'    => $node->bundle(),
+      'tags'    => $tags,
       'status'  => $node->isPublished(),
       'author'  => $node->getOwner()->getAccountName(),
       'url'     => $node->toUrl('canonical', ['absolute' => TRUE])->toString(),
