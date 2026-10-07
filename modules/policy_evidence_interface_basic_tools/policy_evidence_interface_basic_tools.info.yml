@@ -1,0 +1,7 @@
+name: basic tools
+description: basic tools for techlauncher mcp
+package: techlauncher
+type: module
+core_version_requirement: ^10 || ^11
+dependencies:
+  - policy_evidence_interface:policy_evidence_interface
