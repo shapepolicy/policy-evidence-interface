@@ -10,7 +10,7 @@ use Drupal\policy_evidence_interface\Plugin\McpToolBase;
  * @McpTool(
  *   id = "get_site_info",
  *   tool_name = "get_site_info",
- *   description = "Returns general information about this Drupal site including name, slogan, Drupal version, and base URL."
+ *   description = "Returns general information about this Drupal site including name, slogan, Drupal version, and base URL.",
  *   rate_limit = {
  *     "limit" = 10,
  *     "window" = 60

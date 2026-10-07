@@ -21,7 +21,7 @@ use Smalot\PdfParser\Parser;
  * @McpTool(
  *   id = "read_node_pdf",
  *   tool_name = "read_node_pdf",
- *   description = "Parse and extract text from a PDF file attached to a published Drupal node by its numeric node ID (nid)."
+ *   description = "Parse and extract text from a PDF file attached to a published Drupal node by its numeric node ID (nid).",
  *   rate_limit = {
  *     "limit" = 10,
  *     "window" = 60

@@ -10,7 +10,7 @@ use Drupal\policy_evidence_interface\Plugin\McpToolBase;
  * @McpTool(
  *   id = "get_node",
  *   tool_name = "get_node",
- *   description = "Fetch the full details of a single published Drupal node by its numeric node ID (nid), including title, body, content type, author, and field values."
+ *   description = "Fetch the full details of a single published Drupal node by its numeric node ID (nid), including title, body, content type, author, and field values.",
  *   rate_limit = {
  *     "limit" = 10,
  *     "window" = 60

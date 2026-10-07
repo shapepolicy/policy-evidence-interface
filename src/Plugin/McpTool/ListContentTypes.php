@@ -10,7 +10,7 @@ use Drupal\policy_evidence_interface\Plugin\McpToolBase;
  * @McpTool(
  *   id = "list_content_types",
  *   tool_name = "list_content_types",
- *   description = "Returns all content types (node bundles) configured on this Drupal site, including their machine name, label, and description."
+ *   description = "Returns all content types (node bundles) configured on this Drupal site, including their machine name, label, and description.",
  *   rate_limit = {
  *     "limit" = 10,
  *     "window" = 60
