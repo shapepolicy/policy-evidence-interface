@@ -52,6 +52,21 @@ class GetNode extends McpToolBase {
       return ['error' => "Node {$nid} is not published."];
     }
 
+    // is dissallowed taxonimy tag check
+    $terms = $node->get('field_tags')->referencedEntities();
+    // Load the configuration object based on the YAML filename
+    $config = \Drupal::config('policy_evidence_interface.settings');
+    // Traverse into the nested array directly using dot notation
+    $disallow_tag_ids = $config->get('access_control_tags.disallow_tag_ids');
+    foreach ($terms as $term) {
+      $term_id = $term->id();
+      $term_name = $term->label();
+      // Check if the current term ID exists in your other list
+      if (in_array($term_id, $disallow_tag_ids)) {
+        return ['error' => "Node {$nid} is not allowed to be read due to containing tag: {$term_name}."];
+      }
+    }
+
     // Build a field value map for all non-computed fields.
     $fields = [];
     foreach ($node->getFieldDefinitions() as $field_name => $definition) {
