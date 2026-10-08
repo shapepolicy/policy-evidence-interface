@@ -42,7 +42,7 @@ final class PolicyEvidenceInterfaceSettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state): array {
-    
+    /** 
     $form['pdf_root_path'] = [
       '#type' => 'textfield',
       '#title' => $this->t('root path to pdfs'),
@@ -54,7 +54,7 @@ final class PolicyEvidenceInterfaceSettingsForm extends ConfigFormBase {
       '#title' => $this->t('target pdf name'),
       '#default_value' => $this->config('policy_evidence_interface.settings')->get('pdf_file'),
     ];
-
+    */
     // Retrieve the nested array from configuration
     $config_tags = $this->config('policy_evidence_interface.settings')->get('access_control_tags');
     $disallow_tag_ids = isset($config_tags['disallow_tag_ids']) ? $config_tags['disallow_tag_ids'] : [];
