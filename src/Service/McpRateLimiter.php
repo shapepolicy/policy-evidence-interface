@@ -4,48 +4,53 @@ namespace Drupal\policy_evidence_interface\Service;
 
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
 
 /**
- * Limits how often MCP tools can be called.
+ * Limits how often MCP tools can be called using dynamic module configuration.
  */
 final class McpRateLimiter {
-
-  /**
-   * One caller can call all MCP tools 5 times per minute.
-   */
-  private const GLOBAL_LIMIT = 5;
-
-  /**
-   * One caller can call search_nodes 2 times per minute.
-   */
-  private const SEARCH_NODES_LIMIT = 2;
-
-  /**
-   * One rate-limit window lasts 60 seconds.
-   */
-  private const WINDOW_SECONDS = 60;
 
   public function __construct(
     private readonly CacheBackendInterface $cache,
     private readonly TimeInterface $time,
+    private readonly ConfigFactoryInterface $configFactory,
   ) {}
 
   /**
    * Checks whether this caller can call this tool.
    */
   public function check(string $clientId, string $toolName): array {
+    
+    $config = $this->configFactory->get('policy_evidence_interface.settings');
+    $rateLimitConfig = $config->get('rate_limit') ?? [];
+
+    // 1. Check if rate limiting is enabled globally.
+    if (!($rateLimitConfig['enabled'] ?? FALSE)) {
+      return [
+        'allowed' => False,
+        'message' => 'All tools are disabled',
+        'retry_after' => "INFINITE",
+      ];
+    }
+
+    $windowSeconds = (int) ($rateLimitConfig['global']['window_seconds'] ?? 9999);
+    $globalLimit = (int) ($rateLimitConfig['global']['limit'] ?? 0);
+
     $clientHash = hash('sha256', $clientId);
-
-    // The calculator
     $globalKey = 'mcp_rate:global:' . $clientHash;
-
-    // Calculator for every tool
     $toolKey = 'mcp_rate:tool:' . $toolName . ':' . $clientHash;
 
-    $globalCounter = $this->getCounter($globalKey);
-
-    // check the global limit 
-    if ($globalCounter['count'] >= self::GLOBAL_LIMIT) {
+    // 2. Check global rate limit.
+    $globalCounter = $this->getCounter($globalKey, $windowSeconds);
+    if($globalLimit == 0){
+      return [
+        'allowed' => FALSE,
+        'message' => 'All tools are disabled via global rate limiter = 0',
+        'retry_after' => "INFINITE",
+      ];
+    } 
+    if ($globalCounter['count'] >= $globalLimit) {
       return [
         'allowed' => FALSE,
         'message' => 'Global MCP rate limit exceeded.',
@@ -53,14 +58,20 @@ final class McpRateLimiter {
       ];
     }
 
-    // search_nodes single limit is 2 times
-    $toolLimit = $toolName === 'search_nodes'
-      ? self::SEARCH_NODES_LIMIT
-      : self::GLOBAL_LIMIT;
+    // 3. Resolve tool-specific limit (falls back to global limit if not explicitly defined).
+    $toolLimit = (int) ($rateLimitConfig['tools'][$toolName]['limit'] ?? 0);
 
-    $toolCounter = $this->getCounter($toolKey);
-
-    // check the tool limit
+    $toolCounter = $this->getCounter($toolKey, $windowSeconds);
+    if ($toolLimit == 0) {
+      return [
+        'allowed' => FALSE,
+        'message' => sprintf(
+          'Tool "%s" is disabled via via tool rate limiter = 0.',
+          $toolName,
+        ),
+        'retry_after' => "INFINITE",
+      ];
+    }
     if ($toolCounter['count'] >= $toolLimit) {
       return [
         'allowed' => FALSE,
@@ -72,7 +83,7 @@ final class McpRateLimiter {
       ];
     }
 
-
+    // Increment and store updated counters.
     $globalCounter['count']++;
     $toolCounter['count']++;
 
@@ -87,12 +98,11 @@ final class McpRateLimiter {
   }
 
   /**
-   * Reads a counter or creates a new one.
+   * Reads a counter or creates a new one using the configured window duration.
    */
-  private function getCounter(string $key): array {
+  private function getCounter(string $key, int $windowSeconds): array {
     $now = $this->time->getRequestTime();
     $cached = $this->cache->get($key);
-
 
     if (
       !$cached ||
@@ -101,7 +111,7 @@ final class McpRateLimiter {
     ) {
       return [
         'count' => 0,
-        'expires' => $now + self::WINDOW_SECONDS,
+        'expires' => $now + $windowSeconds,
       ];
     }
 
@@ -109,7 +119,7 @@ final class McpRateLimiter {
   }
 
   /**
-   * Saves the counter.
+   * Saves the counter in Drupal cache.
    */
   private function saveCounter(string $key, array $counter): void {
     $this->cache->set(

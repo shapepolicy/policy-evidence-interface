@@ -20,3 +20,4 @@ services:
     arguments:
       - '@cache.default'
       - '@datetime.time'
+      - '@config.factory'
