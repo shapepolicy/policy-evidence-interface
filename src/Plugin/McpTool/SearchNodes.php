@@ -62,6 +62,22 @@ class SearchNodes extends McpToolBase {
     if ($content_type) {
       $query->condition('type', $content_type);
     }
+    //doing a pre filter could have done it in post.
+    $config = \Drupal::config('policy_evidence_interface.settings');
+    $disallow_tag_ids = $config->get('access_control_tags.disallow_tag_ids');
+    // Exclude nodes referencing disallowed taxonomy terms.
+    if (!empty($disallow_tag_ids)) {
+      // 1. Find all node IDs that have AT LEAST ONE disallowed tag.
+      $disallowed_nids = $storage->getQuery()
+        ->accessCheck(FALSE)
+        ->condition('field_tags.target_id', $disallow_tag_ids, 'IN')
+        ->execute();
+
+      // 2. Exclude those node IDs from the main search.
+      if (!empty($disallowed_nids)) {
+        $query->condition('nid', $disallowed_nids, 'NOT IN');
+      }
+    }
 
     $nids  = $query->execute();
     $nodes = $storage->loadMultiple($nids);
