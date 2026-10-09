@@ -22,8 +22,24 @@ jobs:
       - name: Validate composer.json
         run: composer validate --strict
 
-      - name: Install dependencies
-        run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Install module in Drupal
+        run: |
+          composer create-project drupal/recommended-project:^10.6 \
+            "$RUNNER_TEMP/drupal" \
+            --no-interaction \
+            --no-progress \
+            --prefer-dist
+
+          cd "$RUNNER_TEMP/drupal"
+          composer config repositories.policy-evidence-interface path "$GITHUB_WORKSPACE"
+          composer require shapepolicy/policy-evidence-interface:@dev \
+            --with-all-dependencies \
+            --no-interaction \
+            --no-progress \
+            --prefer-dist
+
+          test -f web/modules/contrib/policy-evidence-interface/policy_evidence_interface.info.yml
+          test -d web/modules/contrib/simple_oauth
 
       - name: Lint PHP files
         run: |
