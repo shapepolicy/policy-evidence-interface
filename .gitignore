@@ -2,9 +2,8 @@
 composer.phar
 /vendor/
 
-# Commit your application's lock file https://getcomposer.org/doc/01-basic-usage.md#commit-your-composer-lock-file-to-version-control
-# You may choose to ignore a library lock file http://getcomposer.org/doc/02-libraries.md#lock-file
-# composer.lock
+# This is a module, so the Drupal site that installs it resolves dependencies; don't commit a lock file
+composer.lock
 
 ### Drupal template
 # gitignore template for Drupal 8 projects
@@ -49,7 +48,6 @@ composer.phar
 /web/.ht.router.php
 /web/autoload.php
 /web/composer.json
-/web/composer.lock
 /web/example.gitignore
 /web/index.php
 /web/INSTALL.txt
