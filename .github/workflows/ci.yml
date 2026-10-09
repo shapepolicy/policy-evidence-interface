@@ -5,44 +5,42 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Based on the client's test server (Drupal 10.6, PHP 8.3, Drush 12),
+      # allowing newer releases within those lines.
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.2"
+          php-version: "8.3"
           tools: composer:v2
 
       - name: Validate composer.json
         run: composer validate --strict
 
-      - name: Install module in Drupal
-        run: |
-          composer create-project drupal/recommended-project:^10.6 \
-            "$RUNNER_TEMP/drupal" \
-            --no-interaction \
-            --no-progress \
-            --prefer-dist
+      - name: Lint PHP files
+        run: find . \( -name "*.php" -o -name "*.module" -o -name "*.install" -o -name "*.inc" \) -print0 | xargs -0 -n1 php -l
 
+      - name: Install and enable module in Drupal
+        run: |
+          composer create-project drupal/recommended-project:^10.6 "$RUNNER_TEMP/drupal" --no-install
           cd "$RUNNER_TEMP/drupal"
           composer config repositories.policy-evidence-interface path "$GITHUB_WORKSPACE"
-          composer require shapepolicy/policy-evidence-interface:@dev \
-            --with-all-dependencies \
-            --no-interaction \
-            --no-progress \
-            --prefer-dist
-
-          test -f web/modules/contrib/policy-evidence-interface/policy_evidence_interface.info.yml
-          test -d web/modules/contrib/simple_oauth
-
-      - name: Lint PHP files
-        run: |
-          while IFS= read -r -d '' file; do
-            php -l "$file"
-          done < <(find . -name "*.php" -print0)
+          composer require drush/drush:^12.5 shapepolicy/policy-evidence-interface:@dev
+          vendor/bin/drush site:install minimal --db-url=sqlite://sites/default/files/.ht.sqlite --yes
+          vendor/bin/drush pm:enable policy_evidence_interface policy_evidence_interface_basic_tools --yes
+          vendor/bin/drush help mcp:server > /dev/null
