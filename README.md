@@ -1,76 +1,71 @@
 # Policy Evidence Interface
 
-A Drupal module that exposes published site content to AI clients through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). It supports JSON-RPC over HTTP and newline-delimited JSON-RPC over Drush stdio.
+A Drupal module that lets AI clients such as Claude and ChatGPT search and read a site's published content and attached PDFs through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). Built for [Shape Policy](https://shapepolicy.au) and [APO](https://apo.org.au) as an ANU TechLauncher project.
 
-## Target environment
+## Requirements
 
-- Drupal `10.6.7`
-- PHP `8.3.29`
-- Drush `12.5.3`
-- Composer
-
-These versions are compatible: Drush 12 supports Drupal 10 and PHP 8.1 or newer. The module manifest also permits Drupal 11, although the target environment uses Drupal 10.6.7.
-
-## Features
-
-- Tools for site information, content types, node search, node details, and page-level PDF text extraction.
-- Resources for site information, content types, and the 20 most recently updated nodes.
-- Annotation-based plugin APIs for adding MCP tools and resources.
-- Access control through Drupal's `access mcp server` permission.
-
-PDF extraction supports file fields named `field_pdf_article`, `field_pdf`, or `field_file`. Scanned or font-encoded PDFs may require OCR and are reported as non-extractable.
+Drupal 10.6, PHP 8.3, Drush 12.5 or later, and a Composer project that uses Drupal's package repository (as `drupal/recommended-project` does). Composer installs [Simple OAuth](https://www.drupal.org/project/simple_oauth) and [`smalot/pdfparser`](https://github.com/smalot/pdfparser).
 
 ## Installation
 
-From this module directory, install the PDF parser:
+From the Drupal project root:
 
 ```bash
-composer install
+composer config repositories.policy-evidence-interface vcs https://github.com/shapepolicy/policy-evidence-interface
 ```
-
-Enable the module and clear Drupal's cache:
 
 ```bash
-drush en policy_evidence_interface -y
-drush cr
+composer require shapepolicy/policy-evidence-interface:dev-main
 ```
 
-Grant the **Access MCP Server** permission only to trusted roles.
+```bash
+drush pm:enable policy_evidence_interface --yes
+```
+
+## Configuration
+
+### Rate limits
+
+All tools are disabled until you set limits at **Configuration → System → Policy evidence interface settings**. Set a **Global limit** and a limit for each tool you want to use, per client per **Window duration**. A limit of `0` disables the tool. Unchecking **Enable rate limiting** turns off all tool calls.
+
+### Hiding nodes by tag
+
+On the same page, enter taxonomy term IDs in **Disallowed Taxonomy Tag IDs**; none are blocked after install. Nodes tagged with any of them in `field_tags` are hidden from `search_nodes`, `get_node` and `read_node_pdf`, so those content types need a `field_tags` field.
+
+### OAuth for HTTP clients
+
+1. Create a role with the machine name `mcp_connector` and give it to MCP users.
+2. Give **Access MCP Server** to the Anonymous, Authenticated and `mcp_connector` roles, and **Grant OAuth2 codes** to `mcp_connector`.
+3. Go to **Configuration → Web services → Consumers**. On the **Settings** tab, set a public and private key outside the web root.
+4. On the **Scopes** tab, add a dynamic scope `mcp_connector_scope` with the Authorization Code and Refresh Token grants and role granularity for `mcp_connector`.
+5. On the **Clients** tab, add a consumer labelled exactly `mcp connector` with the same grants and scope, **Use PKCE?** checked, **Is Confidential?** unchecked, and each AI client's redirect URI (for Claude, `https://claude.ai/api/mcp/auth_callback`).
 
 ## Connecting
 
-The HTTP endpoint is:
+- **HTTP:** add `https://example.com/_mcp` as a custom connector in your AI client. It discovers the OAuth server and signs the user in through Drupal.
+- **stdio:** local clients can run `vendor/bin/drush mcp:server` from the Drupal project root. This uses the Drush user's access and no OAuth.
 
-```text
-https://example.com/_mcp
-```
+### Troubleshooting
 
-For a local stdio MCP client, run Drupal's Drush command from the Drupal project root:
+- **Tools missing or the connection drops:** run `drush cache:rebuild`, then `echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | vendor/bin/drush mcp:server` to see any plugin errors.
+- **Sign-in succeeds but the client rejects the token:** turn off DNS proxying (for example Cloudflare's proxy) for the site.
+- **Signed in but no access:** check that the user has the `mcp_connector` role.
 
-```bash
-vendor/bin/drush mcp:server
-```
+## Tools and resources
 
-For DDEV:
+| Tool | Description |
+| --- | --- |
+| `search_nodes` | Search published node titles (`keyword`, optional `content_type` and `limit`). |
+| `get_node` | Read a published node by `nid`. |
+| `read_node_pdf` | Extract one page (`page_start`) of the PDF attached to node `nid`. |
+| `get_site_info` | Site name, URL and Drupal version. |
+| `list_content_types` | The site's content types. |
 
-```bash
-ddev exec vendor/bin/drush mcp:server
-```
+Resources: `drupal://site-info`, `drupal://content-types` and `drupal://recent-nodes`.
 
-The server implements MCP protocol version `2024-11-05`.
+## Extending
 
-## Available MCP interfaces
-
-| Type | Name or URI | Purpose |
-| --- | --- | --- |
-| Tool | `get_site_info` | Return site metadata and Drupal version |
-| Tool | `list_content_types` | List configured node bundles |
-| Tool | `search_nodes` | Search published node titles |
-| Tool | `get_node` | Read a published node and its fields |
-| Tool | `read_node_pdf` | Extract one page from an attached PDF |
-| Resource | `drupal://site-info` | Site configuration |
-| Resource | `drupal://content-types` | Configured node bundles |
-| Resource | `drupal://recent-nodes` | 20 most recently updated published nodes |
+Other modules can add tools in `src/Plugin/McpTool` by extending `McpToolBase` with an `@McpTool(id = "...", description = "...")` annotation, and resources in `src/Plugin/McpResource` by extending `McpResourceBase`. See `modules/policy_evidence_interface_basic_tools` for an example. Rebuild the cache and set the new tool's limit before use.
 
 ## License
 
