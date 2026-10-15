@@ -26,7 +26,7 @@ drush pm:enable policy_evidence_interface --yes
 
 ### Rate limits
 
-All tools are disabled until you set limits at **Configuration → System → Policy evidence interface settings**. Set a **Global limit** and a limit for each tool you want to use, per client per **Window duration**. A limit of `0` disables the tool. Unchecking **Enable rate limiting** turns off all tool calls.
+All tools are disabled until you set limits at **Configuration → System → Policy evidence interface settings**. Set a **Global limit** and a limit for each tool you want to use, per **Window duration**. Over HTTP, limits count per Drupal user; all stdio sessions share one limit. A limit of `0` disables the tool. Unchecking **Enable rate limiting** turns off all tool calls.
 
 ### Hiding nodes by tag
 
@@ -43,7 +43,7 @@ On the same page, enter taxonomy term IDs in **Disallowed Taxonomy Tag IDs**; no
 ## Connecting
 
 - **HTTP:** add `https://example.com/_mcp` as a custom connector in your AI client. It discovers the OAuth server and signs the user in through Drupal.
-- **stdio:** local clients can run `vendor/bin/drush mcp:server` from the Drupal project root. This uses the Drush user's access and no OAuth.
+- **stdio:** local clients can run `vendor/bin/drush mcp:server` from the Drupal project root. This runs without OAuth, so anyone who can run Drush on the server can use every tool.
 
 ### Troubleshooting
 
