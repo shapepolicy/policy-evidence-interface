@@ -57,7 +57,7 @@ On the same page, enter taxonomy term IDs in **Disallowed Taxonomy Tag IDs**; no
 | --- | --- |
 | `search_nodes` | Search published node titles (`keyword`, optional `content_type` and `limit`). |
 | `get_node` | Read a published node by `nid`. |
-| `read_node_pdf` | Extract one page (`page_start`) of the PDF attached to node `nid`. |
+| `read_node_pdf` | Extract one page (`page_start`) of the PDF attached to node `nid` in a `field_pdf_article`, `field_pdf` or `field_file` field. |
 | `get_site_info` | Site name, URL and Drupal version. |
 | `list_content_types` | The site's content types. |
 
