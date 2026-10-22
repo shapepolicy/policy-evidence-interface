@@ -11,10 +11,12 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Tests that get_node and read_node_pdf reject a node ID that is not positive.
+ * Tests that get_node and read_node_pdf reject a missing or zero node ID.
  *
- * No Drupal container exists in a unit test, so these tests also prove the
- * tools return the error before loading anything from the site.
+ * The tools cast nid to an integer and reject 0. No Drupal container exists in
+ * a unit test, so these tests also prove the tools return the error before
+ * loading anything from the site. A negative nid is not rejected here: the
+ * tools look it up and report "not found".
  *
  * @group policy_evidence_interface
  */
@@ -24,7 +26,7 @@ final class NodeIdInputTest extends UnitTestCase {
   /**
    * Arguments whose nid becomes 0 after the tools' (int) cast.
    */
-  public static function providerNidNotPositive(): array {
+  public static function providerNidCastsToZero(): array {
     return [
       'missing' => [[]],
       'zero' => [['nid' => 0]],
@@ -40,9 +42,9 @@ final class NodeIdInputTest extends UnitTestCase {
   /**
    * Tests that get_node returns the "valid nid" error for each input.
    *
-   * @dataProvider providerNidNotPositive
+   * @dataProvider providerNidCastsToZero
    */
-  #[DataProvider('providerNidNotPositive')]
+  #[DataProvider('providerNidCastsToZero')]
   public function testGetNodeRejectsNid(array $arguments): void {
     $tool = new GetNode([], 'get_node', []);
 
@@ -52,9 +54,9 @@ final class NodeIdInputTest extends UnitTestCase {
   /**
    * Tests that read_node_pdf returns the "valid nid" error for each input.
    *
-   * @dataProvider providerNidNotPositive
+   * @dataProvider providerNidCastsToZero
    */
-  #[DataProvider('providerNidNotPositive')]
+  #[DataProvider('providerNidCastsToZero')]
   public function testReadNodePdfRejectsNid(array $arguments): void {
     $tool = new ReadNodePdf([], 'read_node_pdf', []);
 
