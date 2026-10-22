@@ -27,7 +27,7 @@ ddev exec "SIMPLETEST_DB=sqlite://localhost//tmp/pei.sqlite vendor/bin/phpunit -
 
 Use `SIMPLETEST_DB=mysql://db:db@db/db` to run them on MariaDB instead. Run the known issues with `--group policy_evidence_interface_known_issue`.
 
-In any other Composer-based Drupal project, install `drupal/core-dev` (matching the core version) and run the same `vendor/bin/phpunit` command without `ddev exec`.
+In any other Composer-based Drupal project, install `drupal/core-dev` (matching the core version) and `drush/drush` (12.5 or later, as the module requires), then run the same `vendor/bin/phpunit` command without `ddev exec`. Drush is needed because the stdio tests extend the module's `drush mcp:server` command class, and `drupal/core-dev` does not install it.
 
 ## Notes
 
