@@ -1,0 +1,19 @@
+<?php
+
+/**
+ * @file
+ * Test helper for the Policy Evidence Interface tests.
+ */
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_node_access().
+ *
+ * Stands in for any site rule that hides published nodes from some users.
+ */
+function pei_test_node_access(NodeInterface $node, string $operation, AccountInterface $account): AccessResult {
+  return AccessResult::forbiddenIf($operation === 'view' && str_starts_with((string) $node->label(), 'Private'));
+}
