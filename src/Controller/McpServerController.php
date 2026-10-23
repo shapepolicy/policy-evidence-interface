@@ -374,7 +374,8 @@ class McpServerController extends ControllerBase {
           'content' => [
             ['type' => 'text', 'text' => is_string($result) ? $result : json_encode($result, JSON_PRETTY_PRINT)],
           ],
-          'isError' => FALSE,
+          // See McpToolInterface::execute() for the error format.
+          'isError' => is_array($result) && isset($result['error']),
         ];
       }
     }

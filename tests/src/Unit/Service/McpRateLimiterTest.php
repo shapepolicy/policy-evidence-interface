@@ -27,22 +27,28 @@ final class McpRateLimiterTest extends UnitTestCase {
   private array $cacheItems = [];
 
   /**
-   * The time returned by the mocked time service.
+   * The current time returned by the mocked time service.
    */
   private int $now = 1000;
+
+  /**
+   * A fixed request time, as in the long-running stdio process; NULL = $now.
+   */
+  private ?int $requestTime = NULL;
 
   /**
    * Builds a limiter that reads the given 'rate_limit' configuration.
    */
   private function createLimiter(array $rate_limit): McpRateLimiter {
-    // Like Drupal's cache backends, an item is gone once its expire time has
-    // passed, unless it is permanent. So the tests do not depend on how the
-    // limiter checks expiry.
+    // Like Drupal's cache backends, an item is gone once its expire time is
+    // before the request time, unless it is permanent. So the tests do not
+    // depend on how the limiter checks expiry.
     $cache = $this->createMock(CacheBackendInterface::class);
     $cache->method('get')->willReturnCallback(
       function (string $cid): object|false {
         $item = $this->cacheItems[$cid] ?? NULL;
-        $valid = $item && ($item['expire'] === CacheBackendInterface::CACHE_PERMANENT || $item['expire'] >= $this->now);
+        $request_time = $this->requestTime ?? $this->now;
+        $valid = $item && ($item['expire'] === CacheBackendInterface::CACHE_PERMANENT || $item['expire'] >= $request_time);
         return $valid ? (object) ['data' => $item['data']] : FALSE;
       },
     );
@@ -52,10 +58,8 @@ final class McpRateLimiterTest extends UnitTestCase {
       },
     );
 
-    // Both clock methods return the same time, so these tests still pass if
-    // the limiter switches to getCurrentTime() (see the unit KnownIssuesTest).
     $time = $this->createMock(TimeInterface::class);
-    $time->method('getRequestTime')->willReturnCallback(fn (): int => $this->now);
+    $time->method('getRequestTime')->willReturnCallback(fn (): int => $this->requestTime ?? $this->now);
     $time->method('getCurrentTime')->willReturnCallback(fn (): int => $this->now);
 
     $config_factory = $this->getConfigFactoryStub([
@@ -253,6 +257,22 @@ final class McpRateLimiterTest extends UnitTestCase {
     }
 
     $this->assertTrue($limiter->check('user:1', 'get_node')['allowed']);
+  }
+
+  /**
+   * Tests that the window ends in the long-running stdio process.
+   *
+   * The stdio server (drush mcp:server) is one PHP process, so its request
+   * time stays at the moment it started while the clock moves on.
+   */
+  public function testWindowEndsWhenRequestTimeIsFixed(): void {
+    $this->requestTime = $this->now;
+    $limiter = $this->createLimiter($this->enabledConfig(1, 10));
+    $limiter->check('stdio', 'get_node');
+
+    $this->now += 61;
+
+    $this->assertTrue($limiter->check('stdio', 'get_node')['allowed']);
   }
 
 }

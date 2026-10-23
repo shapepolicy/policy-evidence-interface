@@ -54,7 +54,7 @@ final class McpRateLimiter {
       return [
         'allowed' => FALSE,
         'message' => 'Global MCP rate limit exceeded.',
-        'retry_after' => max(0, $globalCounter['expires'] - $this->time->getRequestTime()),
+        'retry_after' => max(0, $globalCounter['expires'] - $this->time->getCurrentTime()),
       ];
     }
 
@@ -79,7 +79,7 @@ final class McpRateLimiter {
           'Rate limit exceeded for tool "%s".',
           $toolName,
         ),
-        'retry_after' => max(0, $toolCounter['expires'] - $this->time->getRequestTime()),
+        'retry_after' => max(0, $toolCounter['expires'] - $this->time->getCurrentTime()),
       ];
     }
 
@@ -101,7 +101,7 @@ final class McpRateLimiter {
    * Reads a counter or creates a new one using the configured window duration.
    */
   private function getCounter(string $key, int $windowSeconds): array {
-    $now = $this->time->getRequestTime();
+    $now = $this->time->getCurrentTime();
     $cached = $this->cache->get($key);
 
     if (
