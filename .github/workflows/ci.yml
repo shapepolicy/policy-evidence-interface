@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Based on the client's test server (Drupal 10.6, PHP 8.3, Drush 12),
       # allowing newer releases within those lines.
