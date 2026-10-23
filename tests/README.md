@@ -10,12 +10,11 @@ PHPUnit tests for the Policy Evidence Interface module. They test the code as it
 | `src/Kernel/` | Tests that run against a small Drupal site in the test database: the tools, resources, `/_mcp` handler, OAuth discovery endpoints, `drush mcp:server` handling, settings form and module install |
 | `src/Kernel/PolicyEvidenceKernelTestBase.php` | Shared set-up: an `article` type with `body`, `field_tags` and `field_pdf_article`, a `page` type without them, and the tag `restricted` in the disallowed list |
 | `fixtures/` | Small PDFs: `three-pages.pdf` (one sentence per page), `numbers-only.pdf` (digits only) and `broken.pdf` (not a complete PDF) |
-| `modules/pei_test/` | Hidden test-only module that denies viewing nodes titled "Private …"; used by two known-issue tests |
+| `modules/pei_test/` | Hidden test-only module that denies viewing nodes titled "Private …"; used by the node access tests in `GetNodeTest` and `ReadNodePdfTest` |
 
-## Test groups
+## Test group
 
-- `policy_evidence_interface`: the normal tests. They must all pass.
-- `policy_evidence_interface_known_issue`: tests for the bugs found while writing the tests (`src/Unit/KnownIssuesTest.php` and `src/Kernel/KnownIssuesTest.php`). Each checks the correct behaviour, so it fails until the bug is fixed. The comment on each test explains the bug.
+All tests are in the `policy_evidence_interface` group, and they must all pass.
 
 ## Running the tests
 
@@ -25,7 +24,7 @@ Kernel tests need a database in `SIMPLETEST_DB`. In this project's DDEV site, fr
 ddev exec "SIMPLETEST_DB=sqlite://localhost//tmp/pei.sqlite vendor/bin/phpunit -c web/core --group policy_evidence_interface web/modules/contrib/policy-evidence-interface/tests"
 ```
 
-Use `SIMPLETEST_DB=mysql://db:db@db/db` to run them on MariaDB instead. Run the known issues with `--group policy_evidence_interface_known_issue`.
+Use `SIMPLETEST_DB=mysql://db:db@db/db` to run them on MariaDB instead.
 
 In any other Composer-based Drupal project, install `drupal/core-dev` (matching the core version) and `drush/drush` (12.5 or later, as the module requires), then run the same `vendor/bin/phpunit` command without `ddev exec`. Drush is needed because the stdio tests extend the module's `drush mcp:server` command class, and `drupal/core-dev` does not install it.
 

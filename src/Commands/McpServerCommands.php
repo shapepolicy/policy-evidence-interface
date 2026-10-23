@@ -202,7 +202,8 @@ class McpServerCommands extends DrushCommands {
                 : json_encode($result, JSON_PRETTY_PRINT),
             ],
           ],
-          'isError' => false,
+          // See McpToolInterface::execute() for the error format.
+          'isError' => is_array($result) && isset($result['error']),
         ];
       }
     }
