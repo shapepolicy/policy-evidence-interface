@@ -44,3 +44,9 @@ jobs:
           vendor/bin/drush site:install minimal --db-url=sqlite://sites/default/files/.ht.sqlite --yes
           vendor/bin/drush pm:enable policy_evidence_interface policy_evidence_interface_basic_tools --yes
           vendor/bin/drush help mcp:server > /dev/null
+
+      - name: Run PHPUnit tests
+        run: |
+          cd "$RUNNER_TEMP/drupal"
+          composer require --dev drupal/core-dev:^10.6 --with-all-dependencies
+          SIMPLETEST_DB="sqlite://localhost/$RUNNER_TEMP/test.sqlite" vendor/bin/phpunit -c web/core --group policy_evidence_interface web/modules/contrib/policy-evidence-interface/tests
