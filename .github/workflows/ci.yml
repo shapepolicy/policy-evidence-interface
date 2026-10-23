@@ -14,12 +14,12 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Based on the client's test server (Drupal 10.6, PHP 8.3, Drush 12),
       # allowing newer releases within those lines.
@@ -44,3 +44,9 @@ jobs:
           vendor/bin/drush site:install minimal --db-url=sqlite://sites/default/files/.ht.sqlite --yes
           vendor/bin/drush pm:enable policy_evidence_interface policy_evidence_interface_basic_tools --yes
           vendor/bin/drush help mcp:server > /dev/null
+
+      - name: Run PHPUnit tests
+        run: |
+          cd "$RUNNER_TEMP/drupal"
+          composer require --dev drupal/core-dev:^10.6 --with-all-dependencies
+          SIMPLETEST_DB="sqlite://localhost/$RUNNER_TEMP/test.sqlite" vendor/bin/phpunit -c web/core --group policy_evidence_interface web/modules/contrib/policy-evidence-interface/tests
