@@ -153,4 +153,13 @@ final class SearchNodesTest extends PolicyEvidenceKernelTestBase {
     $this->assertCount(50, $this->searchTitles(['keyword' => 'Housing', 'limit' => 51]));
   }
 
+  /**
+   * Tests that a limit below 1 is raised to 1 rather than passed to the query.
+   */
+  public function testLimitBelowOneIsRaisedToOne(): void {
+    $this->createHousingArticles(3);
+
+    $this->assertCount(1, $this->searchTitles(['keyword' => 'Housing', 'limit' => -1]));
+  }
+
 }

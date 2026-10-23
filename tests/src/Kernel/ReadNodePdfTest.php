@@ -20,6 +20,11 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 final class ReadNodePdfTest extends PolicyEvidenceKernelTestBase {
 
   /**
+   * {@inheritdoc}
+   */
+  protected static $modules = ['pei_test'];
+
+  /**
    * Tests that page 1 is returned when page_start is not given.
    */
   public function testDefaultsToFirstPage(): void {
@@ -164,6 +169,20 @@ final class ReadNodePdfTest extends PolicyEvidenceKernelTestBase {
       ['error' => "Node {$node->id()} is not allowed to be read due to containing tag: restricted."],
       $result,
     );
+  }
+
+  /**
+   * Tests that the PDF of a node the reader may not view is refused.
+   *
+   * The pei_test module denies viewing nodes titled "Private ...".
+   */
+  public function testNodeAccessIsRespected(): void {
+    $node = $this->createArticleWithPdf('three-pages.pdf', ['title' => 'Private briefing']);
+    $this->assertFalse($node->access('view', $this->reader), 'Test setup: the reader cannot view this node.');
+
+    $result = $this->runTool('read_node_pdf', ['nid' => $node->id()]);
+
+    $this->assertSame(['error' => "Node {$node->id()} is not accessible."], $result);
   }
 
 }

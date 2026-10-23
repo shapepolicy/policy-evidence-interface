@@ -234,4 +234,14 @@ final class McpServerControllerTest extends PolicyEvidenceKernelTestBase {
     $this->assertSame(-32601, $this->httpRpc('resources/read', ['uri' => 'drupal://missing'])['error']['code']);
   }
 
+  /**
+   * Tests that a tool error is returned with isError set.
+   */
+  public function testToolsCallErrorIsFlagged(): void {
+    $result = $this->httpRpc('tools/call', ['name' => 'get_node', 'arguments' => ['nid' => 999]])['result'];
+
+    $this->assertTrue($result['isError']);
+    $this->assertSame('Node 999 not found.', json_decode($result['content'][0]['text'], TRUE)['error']);
+  }
+
 }
