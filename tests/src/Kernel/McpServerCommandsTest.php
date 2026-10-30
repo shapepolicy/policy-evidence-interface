@@ -100,4 +100,13 @@ final class McpServerCommandsTest extends PolicyEvidenceKernelTestBase {
     $this->assertSame('drupal://content-types', $response['result']['contents'][0]['uri']);
   }
 
+  /**
+   * Tests that a tool error is returned with isError set over stdio.
+   */
+  public function testToolsCallErrorIsFlagged(): void {
+    $result = $this->stdioRpc('tools/call', ['name' => 'get_node', 'arguments' => ['nid' => 999]])['result'];
+
+    $this->assertTrue($result['isError']);
+  }
+
 }

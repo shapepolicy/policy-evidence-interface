@@ -17,6 +17,11 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 final class GetNodeTest extends PolicyEvidenceKernelTestBase {
 
   /**
+   * {@inheritdoc}
+   */
+  protected static $modules = ['pei_test'];
+
+  /**
    * Tests the fields returned for a published, untagged article.
    */
   public function testReturnsPublishedNode(): void {
@@ -144,6 +149,20 @@ final class GetNodeTest extends PolicyEvidenceKernelTestBase {
     $result = $this->runTool('get_node', ['nid' => $node->id()]);
 
     $this->assertSame('Restricted report', $result['title']);
+  }
+
+  /**
+   * Tests that a node the reader may not view is refused.
+   *
+   * The pei_test module denies viewing nodes titled "Private ...".
+   */
+  public function testNodeAccessIsRespected(): void {
+    $node = $this->createArticle('Private briefing');
+    $this->assertFalse($node->access('view', $this->reader), 'Test setup: the reader cannot view this node.');
+
+    $result = $this->runTool('get_node', ['nid' => $node->id()]);
+
+    $this->assertSame(['error' => "Node {$node->id()} is not accessible."], $result);
   }
 
 }
