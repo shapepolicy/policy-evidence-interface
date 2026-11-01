@@ -22,7 +22,9 @@ interface McpToolInterface {
    *   Key/value arguments matching the tool's inputSchema.
    *
    * @return mixed
-   *   String or array result; will be JSON-encoded if not a string.
+   *   String or array result; will be JSON-encoded if not a string. Return
+   *   ['error' => 'message'] to report a failure; the MCP response then sets
+   *   isError to TRUE.
    */
   public function execute(array $arguments): mixed;
 

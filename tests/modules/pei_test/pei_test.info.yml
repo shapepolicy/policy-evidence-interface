@@ -1,0 +1,8 @@
+name: 'Policy Evidence Interface test helper'
+type: module
+description: 'Used only by the tests. Denies viewing nodes whose title starts with "Private".'
+package: Testing
+hidden: true
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:node

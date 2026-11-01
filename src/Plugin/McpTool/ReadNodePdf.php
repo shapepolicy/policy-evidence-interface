@@ -70,6 +70,10 @@ class ReadNodePdf extends McpToolBase {
       return ['error' => "Node {$nid} is not published."];
     }
 
+    if (!$node->access('view')) {
+      return ['error' => "Node {$nid} is not accessible."];
+    }
+
     // is dissallowed taxonimy tag check
     $terms = $node->get('field_tags')->referencedEntities();
     // Load the configuration object based on the YAML filename

@@ -46,7 +46,7 @@ class SearchNodes extends McpToolBase {
   public function execute(array $arguments): mixed {
     $keyword      = $arguments['keyword'] ?? '';
     $content_type = $arguments['content_type'] ?? NULL;
-    $limit        = min((int) ($arguments['limit'] ?? 10), 50);
+    $limit        = max(1, min((int) ($arguments['limit'] ?? 10), 50));
 
     /** @var \Drupal\Core\Entity\EntityTypeManagerInterface $etm */
     $etm     = \Drupal::entityTypeManager();
