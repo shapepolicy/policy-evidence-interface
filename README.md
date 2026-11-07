@@ -2,6 +2,10 @@
 
 A Drupal module that lets AI clients such as Claude and ChatGPT search and read a site's published content and attached PDFs through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). Built for [Shape Policy](https://shapepolicy.au) and [APO](https://apo.org.au) as an ANU TechLauncher project.
 
+## Architecture
+
+![Architecture of the Policy Evidence Interface module: AI clients connect over HTTPS with OAuth or local stdio, and requests pass through the interface, access and usage, tool and Drupal services layers](doc/architecture.png)
+
 ## Requirements
 
 Drupal 10.6, PHP 8.3, Drush 12.5 or later, and a Composer project that uses Drupal's package repository (as `drupal/recommended-project` does). Composer installs [Simple OAuth](https://www.drupal.org/project/simple_oauth) and [`smalot/pdfparser`](https://github.com/smalot/pdfparser).
@@ -15,7 +19,7 @@ composer config repositories.policy-evidence-interface vcs https://github.com/sh
 ```
 
 ```bash
-composer require shapepolicy/policy-evidence-interface:dev-main
+composer require shapepolicy/policy-evidence-interface:^1.0
 ```
 
 ```bash
